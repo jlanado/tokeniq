@@ -53,7 +53,7 @@ The AI Token Control Plane addresses these challenges through a layered architec
 
 This is a **control plane, not a compressor.**
 
-Payload compression (e.g. Headroom) is one pluggable optimization stage.
+Payload compression (e.g. [Headroom](https://github.com/chopratejas/headroom)) is one pluggable optimization stage.
 
 The defensible layer, and ultimately the enterprise moat, is:
 
@@ -257,7 +257,7 @@ Governance is as important as optimization.
 
 * Swap simulated `run_model` / `call_backend` for real provider calls (LiteLLM, Bedrock, OpenAI, Anthropic, internal LLM Suite).
 * Swap the Jaccard cache for real embeddings + ANN (pgvector, FAISS, Milvus), cosine ≥ 0.95.
-* Swap the modeled `compress_tokens` for a real compression adapter such as Headroom.
+* Swap the modeled `compress_tokens` for a real compression adapter such as [Headroom](https://github.com/chopratejas/headroom).
 * Move cache, governor, and telemetry state to Redis and PostgreSQL.
 * Replace the cold-start router rules with a learned policy updated by quality-gate outcomes.
 * Build executive dashboards for governance and FinOps reporting.
@@ -277,7 +277,7 @@ It does **not**:
 * Attribute costs
 * Measure business outcomes
 
-Tools like Headroom are excellent on the compression axis and plug naturally into this architecture.
+Tools like [Headroom](https://github.com/chopratejas/headroom) are excellent on the compression axis and plug naturally into this architecture.
 
 The control plane owns routing, governance, quality assurance, and AI economics.
 
