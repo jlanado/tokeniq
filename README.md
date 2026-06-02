@@ -71,7 +71,9 @@ These capabilities become more valuable as AI adoption grows.
 
 Pipeline:
 
-`governor → cache → router → compress → model → quality gate → meter/price`
+`meter → cache → governor → router → compress → model → quality gate`
+
+![AI Token Control Plane architecture](docs/ai-token-control-plane.png)
 
 ---
 
@@ -81,8 +83,10 @@ Pipeline:
 | ------------------------- | ---------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
 | `control_plane_demo.html` | Self-contained visual simulator (vanilla JS, no deps)                                    | **The stage demo.** Double-click to open in any browser. Runs offline. |
 | `control_plane.py`        | Core logic: router, semantic cache, budget governor, quality gate, metrics (stdlib only) | The engineering proof of concept                                       |
-| `gateway.py`              | FastAPI OpenAI-compatible proxy + `/metrics` (sim mode by default)                       | Demonstrates production-ready integration patterns                     |
+| `gateway.py`              | FastAPI OpenAI-compatible proxy + `/metrics` + `/reset` (sim mode by default)            | Demonstrates production-ready integration patterns                     |
 | `demo.py`                 | CLI: naive vs control-plane, plus runaway kill-switch scenario                           | `python3 demo.py` or `.venv/bin/python demo.py`                        |
+| `langgraph_app.py`        | Control plane as a LangGraph `StateGraph` (reuses `control_plane.py` core logic)         | `python langgraph_app.py` — prints graph + Mermaid diagram             |
+| `ARCHITECTURE.md`         | Full reference architecture with Mermaid layered view and request lifecycle diagrams     | Deep-dive on components, data stores, deployment topology              |
 
 ---
 
@@ -116,6 +120,20 @@ python demo.py
 
 ---
 
+## Run the LangGraph App (Optional)
+
+Requires `langgraph` in addition to the base dependencies.
+
+```bash
+pip install langgraph
+python langgraph_app.py
+```
+
+Prints the result for a sample `codegen` request and outputs the graph as a Mermaid diagram.
+The LangGraph version reuses the exact same core logic from `control_plane.py` — behaviour matches the gateway and the CLI demo.
+
+---
+
 ## Run the Gateway (Optional)
 
 ```bash
@@ -131,6 +149,9 @@ curl -s localhost:8000/v1/chat/completions \
   -d '{"task":"codegen","agent_run_id":"run-1","prompt":"fix null currency NPE"}'
 
 curl -s localhost:8000/metrics
+
+# Reset telemetry and per-run governor state:
+curl -s -X POST localhost:8000/reset
 ```
 
 ---

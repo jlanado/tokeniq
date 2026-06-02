@@ -6,6 +6,8 @@ A single governed gateway sits in front of every LLM call. It is the one place t
 > **Control plane, not compressor.** Compression is one pluggable stage. The defensible
 > layer is routing + governance + outcome pricing tuned on proprietary telemetry.
 
+![AI Token Control Plane architecture](docs/ai-token-control-plane.png)
+
 ---
 
 ## 1. Layered view
