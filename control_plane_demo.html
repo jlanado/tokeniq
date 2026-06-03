@@ -161,6 +161,10 @@
             <span style="font-family:var(--mono);font-size:14px;width:74px;text-align:right" id="fleet-val">50,000</span>
           </div>
           <div class="frow" style="margin-top:12px;justify-content:space-between">
+            <span style="color:var(--muted);font-size:12.5px">Gross annual cost (no control plane)</span>
+            <span style="font-family:var(--mono);font-size:18px;font-weight:600;color:var(--amber)" id="fleet-gross">—</span>
+          </div>
+          <div class="frow" style="margin-top:8px;justify-content:space-between">
             <span style="color:var(--muted);font-size:12.5px">Estimated annual savings (250 working days)</span>
             <span class="annual" id="fleet-annual">—</span>
           </div>
@@ -266,12 +270,13 @@ function paintMetrics(s,naive){
   lastCur=s;updateFleet();
 }
 function updateFleet(){
-  if(!lastCur){$('fleet-annual').textContent='—';return;}
+  if(!lastCur){$('fleet-gross').textContent='—';$('fleet-annual').textContent='—';return;}
   const naive=execute(TICKET,{router:false,cache:false,gov:false});
   const nb=summarize(naive);
   const perRun=Math.max(0,nb.cpo-lastCur.cpo);
   const runs=+$('fleet-range').value;
   $('fleet-val').textContent=fmt(runs);
+  $('fleet-gross').textContent=usd(nb.cpo*runs*250).replace('.00','');
   $('fleet-annual').textContent=usd(perRun*runs*250).replace('.00','');
 }
 function opts(){return {router:$('t-router').checked,cache:$('t-cache').checked,gov:$('t-gov').checked,comp:$('t-comp').checked};}
@@ -306,7 +311,7 @@ $('reset').onclick=()=>{$('stream').innerHTML='<div class="empty">Press “Run a
   ['m-tok','m-cache','m-route','m-q','m-cost','m-comp'].forEach(id=>$(id).textContent='—');
   $('m-tok-d').textContent='';$('m-cost-d').textContent='';$('m-qbar').style.width='0%';
   $('h-naive').textContent='—';$('h-cur').textContent='—';$('h-cut').textContent='—';
-  $('mode-tag').textContent='';lastCur=null;$('fleet-annual').textContent='—';};
+  $('mode-tag').textContent='';lastCur=null;$('fleet-gross').textContent='—';$('fleet-annual').textContent='—';};
 ['t-router','t-cache','t-gov','t-comp'].forEach(id=>$(id).onchange=()=>{if(lastCur&&!running)runWorkflow(document.querySelector('#stream .killed')?LOOP:TICKET);});
 $('fleet-range').oninput=updateFleet;
 </script>
