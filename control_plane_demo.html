@@ -214,13 +214,15 @@ function execute(steps,{router,cache,gov,comp}){
   for(let i=0;i<steps.length;i++){
     const [kind,prompt]=steps[i];const [req,tok]=SPECS[kind];
     const foot=comp?compTokens(kind,tok):tok;
+    if(gov){const sig=kind+'|'+prompt;seen[sig]=(seen[sig]||0)+1;
+      if(seen[sig]>3){killed='loop detected on '+kind+' (>3× identical)';out.push({n:i+1,kind,decision:'kill',tokens:0,raw:0,cost:0,q:0,killed:true,reason:killed});break;}
+    }
     if(cache){looks++;const key=kind+'|'+prompt;let hit=null;
       if(exact[key]!=null)hit=exact[key];
       else{const ts=tokset(prompt);for(const e of entries){if(e.kind!==kind)continue;if(jac(ts,e.ts)>=0.85){hit=e.v;break;}}}
       if(hit!=null){hits++;out.push({n:i+1,kind,decision:'cache',tokens:0,raw:0,cost:0,q:hit,cached:true});continue;}
     }
-    if(gov){const sig=kind+'|'+prompt;seen[sig]=(seen[sig]||0)+1;
-      if(seen[sig]>3){killed='loop detected on '+kind+' (>3× identical)';out.push({n:i+1,kind,decision:'kill',tokens:0,raw:0,cost:0,q:0,killed:true,reason:killed});break;}
+    if(gov){
       if(used+foot>800000){killed='per-run token budget exceeded';out.push({n:i+1,kind,decision:'kill',tokens:0,raw:0,cost:0,q:0,killed:true,reason:killed});break;}
     }
     let t=router?route(req):FRONTIER;let r=runModel(req,t);let tokens=foot,esc=false;
