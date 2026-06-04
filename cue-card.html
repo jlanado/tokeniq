@@ -1,0 +1,223 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Token Control Plane — Demo Cue Card</title>
+<style>
+  :root{
+    --bg:#0c0e12; --panel:#13161c; --panel2:#171b22; --line:#262c36;
+    --txt:#e7eaef; --muted:#8b929e; --dim:#5b626d;
+    --green:#37d98a; --amber:#f3b24c; --blue:#5aa9ff; --cyan:#34d6d0;
+    --red:#ff6060; --orange:#ff9d4d; --violet:#b3aaff;
+    --mono:ui-monospace,"SF Mono","JetBrains Mono",Menlo,Consolas,monospace;
+    --sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--txt);font-family:var(--sans);
+    font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1080px;margin:0 auto;padding:26px 22px 60px}
+
+  .head{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;
+    border-bottom:1px solid var(--line);padding-bottom:14px;margin-bottom:6px}
+  .logo{font-family:var(--mono);font-size:11px;letter-spacing:3px;color:var(--green);
+    border:1px solid var(--green);padding:3px 8px;border-radius:4px}
+  h1{font-size:20px;font-weight:600;margin:0;letter-spacing:.2px}
+  .sub{color:var(--muted);font-size:12.5px}
+
+  .oneliner{font-family:var(--mono);font-size:13px;color:var(--muted);
+    margin:14px 0 22px;padding:12px 14px;background:var(--panel2);
+    border:1px solid var(--line);border-left:3px solid var(--green);border-radius:6px}
+  .oneliner b{color:var(--txt)}
+
+  section{margin-bottom:26px}
+  h2{font-size:11px;letter-spacing:1.6px;text-transform:uppercase;color:var(--green);
+    margin:0 0 12px;font-weight:700;display:flex;align-items:center;gap:8px}
+  h2 .num{font-family:var(--mono);color:var(--dim);font-size:11px;
+    border:1px solid var(--line);border-radius:4px;padding:1px 6px}
+
+  table{width:100%;border-collapse:collapse;font-size:13px;
+    background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+  th{text-align:left;font-size:10.5px;letter-spacing:.8px;text-transform:uppercase;
+    color:var(--dim);font-weight:600;padding:9px 12px;background:var(--panel2);
+    border-bottom:1px solid var(--line)}
+  td{padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+  tr:last-child td{border-bottom:0}
+  td b{color:var(--txt)}
+  .say{color:var(--cyan)}
+  .mono{font-family:var(--mono);font-size:12.5px}
+
+  .badge{font-size:10.5px;padding:2px 7px;border-radius:4px;display:inline-block;
+    font-weight:600;font-family:var(--mono);white-space:nowrap}
+  .b-small{background:rgba(55,217,138,.15);color:var(--green)}
+  .b-mid{background:rgba(243,178,76,.15);color:var(--amber)}
+  .b-frontier{background:rgba(90,169,255,.15);color:var(--blue)}
+  .b-cache{background:rgba(52,214,208,.15);color:var(--cyan)}
+  .b-esc{background:rgba(255,157,77,.18);color:var(--orange)}
+  .b-kill{background:rgba(255,96,96,.18);color:var(--red)}
+
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:760px){.two{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px}
+  .card.ticket{border-top:3px solid var(--green)}
+  .card.loop{border-top:3px solid var(--orange)}
+  .card h3{margin:0 0 4px;font-size:14px}
+  .card .tag{font-family:var(--mono);font-size:11px;color:var(--dim);margin-bottom:12px}
+  .card ul{margin:0;padding-left:16px}
+  .card li{margin-bottom:7px;font-size:13px}
+  .card li b{color:var(--txt)}
+  .card .punch{margin-top:12px;padding:9px 11px;background:var(--panel2);border-radius:6px;
+    font-size:12.5px;color:var(--cyan);font-family:var(--mono)}
+
+  .metrics td:first-child{width:150px}
+  .num-big{font-family:var(--mono);font-weight:600}
+  .up{color:var(--green)} .down{color:var(--red)}
+
+  .caveat{background:rgba(243,178,76,.06);border:1px solid rgba(243,178,76,.25);
+    border-radius:8px;padding:13px 15px;font-size:12.5px}
+  .caveat b{color:var(--amber)}
+  .caveat ul{margin:8px 0 0;padding-left:18px}
+  .caveat li{margin-bottom:6px}
+
+  .footer{margin-top:30px;border-top:1px solid var(--line);padding-top:12px;
+    font-family:var(--mono);font-size:11px;color:var(--dim)}
+
+  @media print{
+    body{background:#fff;color:#111}
+    .wrap{max-width:none}
+    .oneliner,.card,table,.caveat{break-inside:avoid}
+    .logo{color:#111;border-color:#111}
+    h2{color:#111}
+  }
+</style>
+
+<div class="wrap">
+
+  <div class="head">
+    <span class="logo">CTRL-PLANE</span>
+    <h1>Demo Cue Card</h1>
+    <span class="sub">— what to say when each button gets pushed</span>
+  </div>
+
+  <div class="oneliner">
+    <b>The pitch in one line:</b> Cloud adoption created Cloud FinOps. Agentic AI needs AI FinOps.
+    One gateway sits in front of every LLM call so you can <b>route it cheaper, cache it, compress it, and cap runaway spend</b> —
+    without losing answer quality. <b>It's a control plane, not a compressor.</b>
+  </div>
+
+  <!-- LEVERS -->
+  <section>
+    <h2><span class="num">1</span> The 4 levers (your opening explanation)</h2>
+    <table>
+      <tr><th>Lever</th><th>Plain English</th><th>Concrete example</th></tr>
+      <tr>
+        <td><b>Router</b></td>
+        <td>Picks the cheapest model that can still do the job. Escalates to a stronger model only if quality fails.</td>
+        <td class="mono">"Fix this typo" → $0.30 small model. "Design this system" → $15 frontier model.</td>
+      </tr>
+      <tr>
+        <td><b>Semantic cache</b></td>
+        <td>If the same request (by meaning, not exact text) was already answered, return the saved answer for ~$0.</td>
+        <td class="mono">Two devs ask the same NPE question worded differently → 2nd is a cache hit.</td>
+      </tr>
+      <tr>
+        <td><b>Budget governor</b></td>
+        <td>Enforces spend limits and kills runaway loops. Caps retries, trips a kill switch.</td>
+        <td class="mono">Agent retries the same failing call forever → killed after 3 tries.</td>
+      </tr>
+      <tr>
+        <td><b>Payload compressor</b></td>
+        <td>Shrinks the prompt/context before the call so you pay for fewer input tokens, without losing meaning.</td>
+        <td class="mono">50-page RAG context compressed (Headroom-style) before the model sees it.</td>
+      </tr>
+    </table>
+  </section>
+
+  <!-- BUTTONS -->
+  <section>
+    <h2><span class="num">2</span> What each button does</h2>
+    <div class="two">
+      <div class="card ticket">
+        <h3>▶ Run agent — resolve JIRA-4821</h3>
+        <div class="tag">the "good agent" / optimization story</div>
+        <ul>
+          <li>One agent runs a real <b>16-step</b> workflow to fix a bug ticket: triage → fetch code → summarize incidents → generate fix → review → write tests → changelog.</li>
+          <li>Watch each step route to the cheapest model that passes <span class="badge b-small">small</span> <span class="badge b-mid">mid</span> <span class="badge b-frontier">frontier</span>.</li>
+          <li>Repeated calls return <span class="badge b-cache">CACHE HIT</span> for free.</li>
+          <li>If a cheap model can't pass, it bumps up a tier: <span class="badge b-esc">ESCALATED</span>.</li>
+        </ul>
+        <div class="punch">SAY: "Same work, ~93% cheaper, quality basically unchanged."</div>
+      </div>
+
+      <div class="card loop">
+        <h3>⚠ Run buggy agent (retry loop)</h3>
+        <div class="tag">the "bad agent" / governance story</div>
+        <ul>
+          <li>5 normal steps, then the <b>same "regenerate fix" call repeated 6 times</b> — a broken agent stuck in a loop.</li>
+          <li>The governor counts identical calls. On the 4th repeat it fires <span class="badge b-kill">KILLED</span> — "loop detected".</li>
+          <li>The run <b>stops mid-stream</b>. No more tokens burned.</li>
+          <li>Also enforces a separate 800K-token-per-run budget cap.</li>
+        </ul>
+        <div class="punch">SAY: "A runaway agent can't bankrupt you. The kill switch caps the blast radius automatically."</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- READING THE OUTPUT -->
+  <section>
+    <h2><span class="num">3</span> How to read the metrics panel</h2>
+    <table class="metrics">
+      <tr><th>Metric</th><th>What it means in plain English</th></tr>
+      <tr><td><b>Tokens</b></td><td>Total tokens this run consumed vs the naive (frontier-only) baseline shown beside it.</td></tr>
+      <tr><td><b>Cache hit rate</b></td><td>Share of calls answered from cache instead of a model. <b>~31% on JIRA-4821</b> (5 of 16 steps were repeats). Roughly 1 in 3 calls cost nothing.</td></tr>
+      <tr><td><b>Routing savings</b></td><td>How much cheaper routing made it vs sending everything to the frontier model.</td></tr>
+      <tr><td><b>Quality (Q)</b></td><td>0-to-1 score of how good the answers are. 1.0 = perfect. <b>0.89 vs 0.93 naive</b> = ~4% drop, i.e. "held."</td></tr>
+      <tr><td><b>Run cost</b></td><td>Dollar cost of this run vs naive.</td></tr>
+      <tr><td><b>Compression</b></td><td>How much the context was shrunk before hitting the model.</td></tr>
+    </table>
+  </section>
+
+  <!-- NUMBERS -->
+  <section>
+    <h2><span class="num">4</span> The numbers to quote (one ticket)</h2>
+    <div class="two">
+      <table>
+        <tr><th>Metric</th><th>Naive</th><th>Control plane</th><th>Δ</th></tr>
+        <tr><td>Tokens</td><td class="mono">273,000</td><td class="mono">114,430</td><td class="num-big down">−58%</td></tr>
+        <tr><td>Cost</td><td class="mono">$4.09</td><td class="mono">$0.28</td><td class="num-big down">−93%</td></tr>
+        <tr><td>Quality (Q)</td><td class="mono">0.93</td><td class="mono">0.89</td><td class="num-big up">held</td></tr>
+        <tr><td>Cost / ticket</td><td class="mono">$4.38</td><td class="mono">$0.31</td><td class="num-big down">−93%</td></tr>
+      </table>
+      <table>
+        <tr><th>Stage (stacks up)</th><th>Cost</th><th>Cumulative</th></tr>
+        <tr><td>Frontier only</td><td class="mono">$4.09</td><td class="mono">—</td></tr>
+        <tr><td>+ Semantic cache</td><td class="mono">$2.76</td><td class="num-big down">−33%</td></tr>
+        <tr><td>+ Model routing</td><td class="mono">$0.42</td><td class="num-big down">−90%</td></tr>
+        <tr><td>+ Compression</td><td class="mono">$0.28</td><td class="num-big down">−93%</td></tr>
+      </table>
+    </div>
+    <div class="oneliner" style="margin-top:16px;border-left-color:var(--cyan)">
+      <b>Fleet slider:</b> drag it to project gross annual cost and estimated savings at enterprise scale (365 days — agents run 24/7).
+      At 50,000 agent runs/day the per-ticket savings multiply fast — that's the "why this matters at scale" moment.
+      Use the <b>master toggle</b> to flip all four levers at once for a clean naive vs control plane comparison.
+    </div>
+  </section>
+
+  <!-- CAVEATS -->
+  <section>
+    <h2><span class="num">5</span> If someone pushes back (honest caveats)</h2>
+    <div class="caveat">
+      <b>This is a reference architecture / simulator, not production. Say so up front — it builds credibility.</b>
+      <ul>
+        <li><b>Quality (Q) is modeled, not measured.</b> In production you'd back it with real evals — graded tasks, human review, or an LLM judge — before claiming "quality maintained."</li>
+        <li><b>The cache matches near-literal repeats</b> (exact or ≥0.85 token similarity). Real agents reword the same intent, so production needs embedding-based matching (cosine ≥ 0.95).</li>
+        <li><b>The kill thresholds are hardcoded</b> (>3 identical calls, 800K tokens/run) and the buggy agent loops on an identical prompt — the easy case. Real runaways vary slightly, so you'd want fuzzy matching or cost-based circuit breakers.</li>
+        <li><b>The 31% cache rate is specific to this scripted ticket.</b> Workflows with fewer repeats cache less.</li>
+        <li><b>State is in-memory today.</b> Production swaps in Redis + Postgres, real provider calls (LiteLLM/Bedrock/OpenAI/Anthropic), and a learned router policy.</li>
+      </ul>
+    </div>
+  </section>
+
+  <div class="footer">
+    jlanado/token-control-plane · pipeline: meter → cache → governor → router → compress → model → quality gate<br>
+    prices illustrative: small $0.30 · mid $3.00 · frontier $15.00 per 1M tokens
+  </div>
+
+</div>
