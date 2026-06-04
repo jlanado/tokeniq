@@ -169,7 +169,7 @@
             <span style="font-family:var(--mono);font-size:18px;font-weight:600;color:var(--amber)" id="fleet-gross">—</span>
           </div>
           <div class="frow" style="margin-top:8px;justify-content:space-between">
-            <span style="color:var(--muted);font-size:12.5px">Estimated annual savings (250 working days)</span>
+            <span style="color:var(--muted);font-size:12.5px">Estimated annual savings (365 days)</span>
             <span class="annual" id="fleet-annual">—</span>
           </div>
           <div class="note">Compression is a pluggable stage (e.g. Headroom). The defensible layer is routing · governance · outcome pricing.<br>Prices illustrative: small $0.30 · mid $3.00 · frontier $15.00 per 1M tokens. Same logic as the Python gateway.</div>
@@ -280,10 +280,10 @@ function updateFleet(){
   const nb=summarize(naive);
   const runs=+$('fleet-range').value;
   $('fleet-val').textContent=fmt(runs);
-  $('fleet-gross').textContent=usd(nb.cpo*runs*250).replace('.00','');
+  $('fleet-gross').textContent=usd(nb.cpo*runs*365).replace('.00','');
   if(!lastCur){$('fleet-annual').textContent='—';return;}
   const perRun=Math.max(0,nb.cpo-lastCur.cpo);
-  $('fleet-annual').textContent=usd(perRun*runs*250).replace('.00','');
+  $('fleet-annual').textContent=usd(perRun*runs*365).replace('.00','');
 }
 function opts(){return {router:$('t-router').checked,cache:$('t-cache').checked,gov:$('t-gov').checked,comp:$('t-comp').checked};}
 function modeTag(){const o=opts();const on=['router'].filter(k=>o[k]).length;
