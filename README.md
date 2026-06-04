@@ -82,7 +82,6 @@ Pipeline:
 | File                      | What it is                                                                               | Use it for                                                             |
 | ------------------------- | ---------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
 | `control_plane_demo.html` | Self-contained visual simulator (vanilla JS, no deps)                                    | **The stage demo.** Double-click to open in any browser. Runs offline. |
-| `cue-card.html`           | Demo script — what to say at each step, numbers to quote, honest caveats                 | Open alongside the demo as your presenter notes.                       |
 | `control_plane.py`        | Core logic: router, semantic cache, budget governor, quality gate, metrics (stdlib only) | The engineering proof of concept                                       |
 | `gateway.py`              | FastAPI OpenAI-compatible proxy + `/metrics` + `/reset` (sim mode by default)            | Demonstrates production-ready integration patterns                     |
 | `demo.py`                 | CLI: naive vs control-plane, plus runaway kill-switch scenario                           | `python3 demo.py` or `.venv/bin/python demo.py`                        |
