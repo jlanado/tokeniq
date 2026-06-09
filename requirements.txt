@@ -1,4 +1,4 @@
-# AI Token Control Plane — dependencies
+# TokenIQ — dependencies
 # Only the HTTP gateway needs these. control_plane.py and demo.py are stdlib-only,
 # and control_plane_demo.html runs in any browser with nothing installed.
 

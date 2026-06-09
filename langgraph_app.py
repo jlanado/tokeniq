@@ -1,5 +1,5 @@
 """
-AI Token Control Plane as a LangGraph StateGraph.
+TokenIQ control plane as a LangGraph StateGraph.
 
 The control plane IS a graph:
   - cache hit  -> early exit

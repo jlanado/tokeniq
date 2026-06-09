@@ -1,4 +1,4 @@
-# AI Token Control Plane — local stack
+# TokenIQ — local stack
 #   docker compose up --build
 #   gateway API  -> http://localhost:8000   (/metrics, /v1/chat/completions)
 #   visual demo  -> http://localhost:8080

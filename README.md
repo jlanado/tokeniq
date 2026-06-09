@@ -1,4 +1,4 @@
-# AI Token Control Plane
+# TokenIQ
 
 ## Governance, Optimization, and FinOps for Agentic AI
 
@@ -14,9 +14,9 @@ As AI adoption accelerates across the enterprise, token consumption becomes the 
 
 Organizations are rapidly deploying coding assistants, agentic workflows, retrieval-augmented generation (RAG), copilots, and AI-powered applications. While these capabilities drive productivity, they also introduce a new challenge: uncontrolled token consumption, inconsistent governance, and rapidly increasing AI operating costs.
 
-The **AI Token Control Plane** introduces a centralized governance and optimization layer in front of every AI interaction.
+**TokenIQ** introduces a centralized governance and optimization layer in front of every AI interaction.
 
-Similar to how Cloud FinOps transformed cloud spending through visibility, governance, and accountability, the AI Token Control Plane provides a framework for managing AI consumption at enterprise scale.
+Similar to how Cloud FinOps transformed cloud spending through visibility, governance, and accountability, TokenIQ provides a framework for managing AI consumption at enterprise scale.
 
 > Enable AI adoption at scale while maintaining governance, controlling costs, reducing waste, and preserving output quality.
 
@@ -45,7 +45,7 @@ Without a control plane, enterprises face:
 * Runaway agentic workflows
 * Growing AI spend disconnected from business value
 
-The AI Token Control Plane addresses these challenges through a layered architecture that combines governance, optimization, observability, and FinOps into a single enterprise platform.
+TokenIQ addresses these challenges through a layered architecture that combines governance, optimization, observability, and FinOps into a single enterprise platform.
 
 ---
 
@@ -73,7 +73,7 @@ Pipeline:
 
 `meter → cache → governor → router → compress → model → quality gate`
 
-![AI Token Control Plane architecture](docs/ai-token-control-plane.png)
+![TokenIQ architecture](docs/ai-token-control-plane.png)
 
 ---
 
@@ -216,7 +216,7 @@ Governance is as important as optimization.
 
 ## The Pitch in One Line
 
-> Cloud adoption created Cloud FinOps. Agentic AI will require AI FinOps. The AI Token Control Plane is the governance, optimization, and economics layer that makes enterprise-scale AI sustainable.
+> Cloud adoption created Cloud FinOps. Agentic AI will require AI FinOps. TokenIQ is the governance, optimization, and economics layer that makes enterprise-scale AI sustainable.
 
 ---
 
@@ -295,7 +295,7 @@ Cloud FinOps became standard for governing cloud consumption.
 
 As AI adoption scales, enterprises will require a similar layer for governing AI consumption.
 
-The AI Token Control Plane is a reference architecture for that future.
+TokenIQ is a reference architecture for that future.
 
 ---
 

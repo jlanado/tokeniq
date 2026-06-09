@@ -1,5 +1,5 @@
 """
-AI Token Control Plane - core logic (stdlib only, no external deps).
+TokenIQ — core control plane logic (stdlib only, no external deps).
 
 Pieces:
   - Tier / Task models        : model tiers + task fingerprints

@@ -1,5 +1,5 @@
 """
-Runnable demo for the AI Token Control Plane.
+Runnable demo for TokenIQ.
 
     python demo.py
 

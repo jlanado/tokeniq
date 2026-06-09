@@ -1,5 +1,5 @@
 """
-AI Token Control Plane - HTTP gateway (the single chokepoint every call routes through).
+TokenIQ — HTTP gateway (the single chokepoint every call routes through).
 
 Run (simulation mode, no API keys, no network needed):
     pip install fastapi uvicorn
@@ -29,7 +29,7 @@ from control_plane import (
     SemanticCache, BudgetGovernor, compress_tokens,
 )
 
-app = FastAPI(title="AI Token Control Plane")
+app = FastAPI(title="TokenIQ")
 
 # Compression stage: pluggable transform (reference adapter = Headroom-style
 # content-aware compressor). Set False to bypass.
