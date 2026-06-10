@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TokenIQ — Tab Guide Cue Card</title>
+<style>
+  :root{
+    --bg:#0c0e12; --panel:#13161c; --panel2:#171b22; --line:#262c36;
+    --txt:#e7eaef; --muted:#8b929e; --dim:#5b626d;
+    --green:#37d98a; --amber:#f3b24c; --blue:#5aa9ff; --cyan:#34d6d0;
+    --red:#ff6060; --orange:#ff9d4d; --violet:#b3aaff;
+    --mono:ui-monospace,"SF Mono","JetBrains Mono",Menlo,Consolas,monospace;
+    --sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--txt);font-family:var(--sans);
+    font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1080px;margin:0 auto;padding:26px 22px 60px}
+
+  .head{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;
+    border-bottom:1px solid var(--line);padding-bottom:14px;margin-bottom:6px}
+  .logo{font-family:var(--mono);font-size:11px;letter-spacing:3px;color:var(--green);
+    border:1px solid var(--green);padding:3px 8px;border-radius:4px}
+  h1{font-size:20px;font-weight:600;margin:0;letter-spacing:.2px}
+  .sub{color:var(--muted);font-size:12.5px}
+
+  .oneliner{font-family:var(--mono);font-size:13px;color:var(--muted);
+    margin:14px 0 22px;padding:12px 14px;background:var(--panel2);
+    border:1px solid var(--line);border-left:3px solid var(--green);border-radius:6px}
+  .oneliner b{color:var(--txt)}
+
+  /* ── collapsible section ── */
+  section{margin-bottom:10px;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  .s-head{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:13px 16px;cursor:pointer;user-select:none;
+    background:var(--panel2);
+    transition:background .12s;
+  }
+  .s-head:hover{background:#1e2430}
+  .s-body{padding:16px;border-top:1px solid var(--line)}
+  section.collapsed .s-body{display:none}
+  section.collapsed .s-head{border-bottom:none}
+
+  h2{font-size:11px;letter-spacing:1.6px;text-transform:uppercase;
+    margin:0;font-weight:700;display:flex;align-items:center;gap:8px}
+  h2.sim{color:var(--blue)}
+  h2.fleet{color:var(--amber)}
+  h2.pol{color:var(--violet)}
+  h2.hard{color:var(--red)}
+  h2 .num{font-family:var(--mono);color:var(--dim);font-size:11px;
+    border:1px solid var(--line);border-radius:4px;padding:1px 6px}
+  h2 .tab-pill{font-size:10.5px;padding:2px 9px;border-radius:20px;font-family:var(--mono);
+    font-weight:600;letter-spacing:.5px}
+  h2.sim .tab-pill{background:rgba(90,169,255,.15);color:var(--blue)}
+  h2.fleet .tab-pill{background:rgba(243,178,76,.15);color:var(--amber)}
+  h2.pol .tab-pill{background:rgba(179,170,255,.15);color:var(--violet)}
+  h2.hard .tab-pill{background:rgba(255,96,96,.15);color:var(--red)}
+
+  .chevron{flex-shrink:0;color:var(--dim);transition:transform .2s}
+  section.collapsed .chevron{transform:rotate(-90deg)}
+
+  table{width:100%;border-collapse:collapse;font-size:13px;
+    background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+  th{text-align:left;font-size:10.5px;letter-spacing:.8px;text-transform:uppercase;
+    color:var(--dim);font-weight:600;padding:9px 12px;background:var(--panel2);
+    border-bottom:1px solid var(--line)}
+  td{padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+  tr:last-child td{border-bottom:0}
+  td b{color:var(--txt)}
+  td:first-child{width:170px}
+  .say{color:var(--cyan);font-style:italic}
+  .mono{font-family:var(--mono);font-size:12.5px}
+
+  .badge{font-size:10.5px;padding:2px 7px;border-radius:4px;display:inline-block;
+    font-weight:600;font-family:var(--mono);white-space:nowrap}
+  .b-small{background:rgba(55,217,138,.15);color:var(--green)}
+  .b-mid{background:rgba(243,178,76,.15);color:var(--amber)}
+  .b-frontier{background:rgba(90,169,255,.15);color:var(--blue)}
+  .b-cache{background:rgba(52,214,208,.15);color:var(--cyan)}
+  .b-esc{background:rgba(255,157,77,.18);color:var(--orange)}
+  .b-kill{background:rgba(255,96,96,.18);color:var(--red)}
+
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:760px){.two{grid-template-columns:1fr}}
+
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px}
+  .card h3{margin:0 0 4px;font-size:14px;font-weight:600}
+  .card .tag{font-family:var(--mono);font-size:11px;color:var(--dim);margin-bottom:10px}
+  .card ul{margin:0;padding-left:16px}
+  .card li{margin-bottom:7px;font-size:13px}
+  .card li b{color:var(--txt)}
+  .card.blue{border-top:3px solid var(--blue)}
+  .card.amber{border-top:3px solid var(--amber)}
+  .card.violet{border-top:3px solid var(--violet)}
+
+  .punch{margin-top:12px;padding:9px 11px;background:var(--panel2);border-radius:6px;
+    font-size:12.5px;color:var(--cyan);font-family:var(--mono)}
+  .punch.amber{color:var(--amber)}
+  .punch.violet{color:var(--violet)}
+
+  .scale-table td:nth-child(2),.scale-table td:nth-child(3),.scale-table td:nth-child(4){
+    font-family:var(--mono);font-size:12.5px}
+  .up{color:var(--green)} .down{color:var(--red)}
+
+  .caveat{background:rgba(243,178,76,.06);border:1px solid rgba(243,178,76,.25);
+    border-radius:8px;padding:13px 15px;font-size:12.5px;margin-top:14px}
+  .caveat b{color:var(--amber)}
+  .caveat ul{margin:6px 0 0;padding-left:18px}
+  .caveat li{margin-bottom:6px}
+
+  .tog-btn{font-family:var(--mono);font-size:11px;padding:4px 12px;border-radius:5px;
+    cursor:pointer;background:var(--panel2);color:var(--muted);
+    border:1px solid var(--line);transition:background .12s,color .12s}
+  .tog-btn:hover{background:var(--line);color:var(--txt)}
+
+  .footer{margin-top:20px;border-top:1px solid var(--line);padding-top:12px;
+    font-family:var(--mono);font-size:11px;color:var(--dim)}
+
+  @media print{
+    body{background:#fff;color:#111}
+    .wrap{max-width:none}
+    section{border:1px solid #ccc}
+    .s-head{background:#f5f5f5}
+    .s-body{display:block !important}
+    .oneliner,.card,table,.caveat{break-inside:avoid}
+    h2{color:#111 !important}
+    .tab-pill{border:1px solid #999 !important;background:none !important;color:#333 !important}
+  }
+</style>
+
+<div class="wrap">
+
+  <div class="head">
+    <span class="logo">TOKENIQ</span>
+    <h1>Tab Guide — Cue Card</h1>
+    <span class="sub">— how to explain the three simulated views</span>
+  </div>
+
+  <div style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:10px">
+    <button class="tog-btn" id="expand-all">Expand all</button>
+    <button class="tog-btn" id="collapse-all">Collapse all</button>
+  </div>
+
+  <div class="oneliner">
+    <b>Frame it early:</b> "These three tabs zoom out from the single agent run you just saw.
+    Agent Simulator is <b>one ticket</b>. Fleet Projection is <b>your whole org, annualised</b>.
+    Policies is <b>the guardrails that make it safe to give agents budget at all</b>."
+  </div>
+
+  <!-- ── AGENT SIMULATOR ─────────────────────────────────────────── -->
+  <section>
+    <div class="s-head">
+      <h2 class="sim">
+        <span class="num">1</span>
+        <span class="tab-pill">Agent Simulator</span>
+        &nbsp;— what you're looking at
+      </h2>
+      <svg class="chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+    <div class="s-body">
+
+      <div class="two" style="margin-bottom:14px">
+        <div class="card blue">
+          <h3>The request stream table</h3>
+          <div class="tag">rows appear live as the agent works through steps</div>
+          <ul>
+            <li>Each row is <b>one LLM call</b> — one step in the workflow.</li>
+            <li>The <b>Decision</b> column shows what the control plane did to that call.</li>
+            <li><b>Tokens</b> and <b>Cost</b> show what was actually spent after optimisation.</li>
+          </ul>
+          <div class="punch">SAY: "Think of this as the audit log. Every AI call is visible, priced, and explained."</div>
+        </div>
+        <div class="card blue">
+          <h3>The KPI strip (top cards)</h3>
+          <div class="tag">updates after the run completes</div>
+          <ul>
+            <li><b>Tokens</b> — what you consumed vs the naive all-frontier baseline.</li>
+            <li><b>Cache hit rate</b> — share of calls that cost ~$0 because the answer was already known.</li>
+            <li><b>Routing savings</b> — extra savings from sending cheap tasks to cheap models.</li>
+            <li><b>Quality</b> — modelled score; 0.89 vs 0.93 naive = ~4% drop, quality held.</li>
+          </ul>
+          <div class="punch">SAY: "93% cost reduction. Quality barely moved. That's the whole story."</div>
+        </div>
+      </div>
+
+      <table>
+        <tr><th>Badge / label</th><th>Plain English</th><th>What to say</th></tr>
+        <tr>
+          <td><span class="badge b-small">small</span> <span class="badge b-mid">mid</span> <span class="badge b-frontier">frontier</span></td>
+          <td>The router picked this model tier for this task. Small = cheapest, frontier = most capable.</td>
+          <td class="say">"Low-complexity tasks go cheap. Only hard tasks use the expensive model."</td>
+        </tr>
+        <tr>
+          <td><span class="badge b-cache">CACHE HIT</span></td>
+          <td>This exact request (by meaning) was answered before. Returned instantly, zero model cost.</td>
+          <td class="say">"1 in 3 calls was free. The cache recognised the same intent even if the wording differed."</td>
+        </tr>
+        <tr>
+          <td><span class="badge b-esc">ESCALATED</span></td>
+          <td>The cheap model's answer didn't pass the quality gate, so it bumped up one tier automatically.</td>
+          <td class="say">"It tried small first, quality failed, so it upgraded itself. No human needed."</td>
+        </tr>
+        <tr>
+          <td><span class="badge b-kill">KILLED</span></td>
+          <td>The governor detected a loop or budget breach and terminated the run mid-stream.</td>
+          <td class="say">"The agent was stuck. The kill switch fired before it could burn any more budget."</td>
+        </tr>
+        <tr>
+          <td><span class="mono">⊟ COMP</span></td>
+          <td>The prompt was compressed before hitting the model — fewer input tokens billed.</td>
+          <td class="say">"We stripped redundant context before the call. You pay for signal, not noise."</td>
+        </tr>
+      </table>
+
+      <table style="margin-top:14px">
+        <tr><th>Task type</th><th>What it is</th><th>Model tier</th><th>Plain English</th></tr>
+        <tr>
+          <td><span class="mono">classify</span></td>
+          <td>Label or triage a task — is this a bug, a risk, a priority?</td>
+          <td><span class="badge b-small">small</span></td>
+          <td>"Sorting mail. Any small model can do it."</td>
+        </tr>
+        <tr>
+          <td><span class="mono">retrieve</span></td>
+          <td>Fetch and return a chunk of code or config — no reasoning required.</td>
+          <td><span class="badge b-small">small</span></td>
+          <td>"Looking something up in a filing cabinet. Simple pattern match."</td>
+        </tr>
+        <tr>
+          <td><span class="mono">summarize</span></td>
+          <td>Condense incidents, test results, or context into a short digest.</td>
+          <td><span class="badge b-small">small</span></td>
+          <td>"Summarising meeting notes. High volume, low stakes."</td>
+        </tr>
+        <tr>
+          <td><span class="mono">write_tests</span></td>
+          <td>Generate unit tests for a specific behaviour or edge case.</td>
+          <td><span class="badge b-mid">mid</span></td>
+          <td>"Needs reasoning about edge cases, but not full system design."</td>
+        </tr>
+        <tr>
+          <td><span class="mono">review</span></td>
+          <td>Assess a proposed fix or PR for correctness, side effects, and risks.</td>
+          <td><span class="badge b-mid">mid</span></td>
+          <td>"A senior code review. Needs judgement — worth paying mid-tier for."</td>
+        </tr>
+        <tr>
+          <td><span class="mono">codegen</span></td>
+          <td>Generate a correct, production-ready code change or changelog entry.</td>
+          <td><span class="badge b-frontier">frontier</span></td>
+          <td>"Writing the actual fix. Only this step needs the frontier model."</td>
+        </tr>
+      </table>
+
+      <div class="oneliner" style="margin-top:14px;border-left-color:var(--blue)">
+        <b>The routing story in one sentence:</b> Out of 16 steps, only 3 are <span class="badge b-frontier">codegen</span> that need frontier.
+        The other 13 — classify, retrieve, summarize, write_tests, review — route to small or mid.
+        That's where the 93% cost cut comes from.
+      </div>
+
+      <div class="caveat">
+        <b>Honest caveat (say this if asked):</b>
+        <ul>
+          <li>This is a <b>scripted simulation</b>, not live LLM calls. The workflow steps are deterministic — same seed, same result every time.</li>
+          <li>Quality scores are <b>modelled probabilities</b>, not real evals. Production uses an LLM judge or human graders.</li>
+          <li>Cache matching here is token-similarity. Production uses <b>vector embeddings</b> for semantic matching.</li>
+        </ul>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ── FLEET PROJECTION ───────────────────────────────────────── -->
+  <section>
+    <div class="s-head">
+      <h2 class="fleet">
+        <span class="num">2</span>
+        <span class="tab-pill">Fleet Projection</span>
+        &nbsp;— what you're looking at
+      </h2>
+      <svg class="chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+    <div class="s-body">
+
+      <div class="two" style="margin-bottom:14px">
+        <div class="card amber">
+          <h3>The slider</h3>
+          <div class="tag">drag left/right to change agent runs per day</div>
+          <ul>
+            <li>Takes the <b>cost-per-ticket</b> from the agent run and multiplies by <b>runs/day × 365</b>.</li>
+            <li>Shows two numbers: <b>gross annual cost</b> (naive) vs <b>estimated savings</b>.</li>
+            <li>Presets: 1K · 5K · 10K · 50K · 100K runs/day.</li>
+          </ul>
+          <div class="punch amber">SAY: "Drag this to your team's actual volume. Watch what happens to the savings line."</div>
+        </div>
+        <div class="card amber">
+          <h3>The "why this matters at scale" moment</h3>
+          <div class="tag">the numbers that land with finance</div>
+          <ul>
+            <li>At <b>1,000 runs/day</b>: ~$1.5M gross/year → saves ~$1.4M.</li>
+            <li>At <b>10,000 runs/day</b>: ~$15M gross/year → saves ~$14M.</li>
+            <li>At <b>50,000 runs/day</b>: ~$74M gross/year → saves ~$69M.</li>
+            <li>The savings compound because all four levers stack.</li>
+          </ul>
+          <div class="punch amber">SAY: "At enterprise scale, ungoverned AI spend is a budget line item."</div>
+        </div>
+      </div>
+
+      <table class="scale-table">
+        <tr><th>Runs / day</th><th>Gross annual (naive)</th><th>With TokenIQ</th><th>Annual savings</th></tr>
+        <tr><td>1,000</td><td>$1.49M</td><td>$0.11M</td><td class="up">~$1.38M (93%)</td></tr>
+        <tr><td>5,000</td><td>$7.47M</td><td>$0.57M</td><td class="up">~$6.9M (93%)</td></tr>
+        <tr><td>10,000</td><td>$14.9M</td><td>$1.1M</td><td class="up">~$13.8M (93%)</td></tr>
+        <tr><td>50,000</td><td>$74.7M</td><td>$5.7M</td><td class="up">~$69M (93%)</td></tr>
+        <tr><td>100,000</td><td>$149M</td><td>$11.4M</td><td class="up">~$138M (93%)</td></tr>
+      </table>
+
+      <div class="caveat">
+        <b>Honest caveat (say this if asked):</b>
+        <ul>
+          <li>This is <b>pure extrapolation</b> — one ticket cost × days × volume. Directional model, not a forecast.</li>
+          <li>Real workloads vary: some tasks are cache-unfriendly, some always need frontier. <b>Actual savings will differ.</b></li>
+          <li>Right framing: "Here's the order of magnitude. Your actual number depends on your task mix."</li>
+        </ul>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ── POLICIES ────────────────────────────────────────────────── -->
+  <section>
+    <div class="s-head">
+      <h2 class="pol">
+        <span class="num">3</span>
+        <span class="tab-pill">Policies</span>
+        &nbsp;— what you're looking at
+      </h2>
+      <svg class="chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+    <div class="s-body">
+
+      <div class="two" style="margin-bottom:14px">
+        <div class="card violet">
+          <h3>What policies are</h3>
+          <div class="tag">the control surface — who can spend what, on what</div>
+          <ul>
+            <li>Think of this as <b>IAM for AI spend</b>. Same concept as cloud resource policies, applied to model calls.</li>
+            <li>Each policy is a rule the control plane enforces <b>before</b> a call reaches a model.</li>
+            <li>Policies are scoped: per-team, per-agent, per-task-type, or org-wide.</li>
+          </ul>
+          <div class="punch violet">SAY: "You wouldn't give every developer an unlimited AWS budget. Same principle here."</div>
+        </div>
+        <div class="card violet">
+          <h3>The four policy types</h3>
+          <div class="tag">what each category governs</div>
+          <ul>
+            <li><b>Rate limits</b> — max calls per minute/hour. Prevents thundering herd.</li>
+            <li><b>Budget caps</b> — max $ per run, per day, per team. Hard stop, not a warning.</li>
+            <li><b>Routing rules</b> — which model tiers a team/agent is allowed to reach.</li>
+            <li><b>Kill thresholds</b> — loop detection: max identical calls, max token burn per run.</li>
+          </ul>
+          <div class="punch violet">SAY: "Finance approves the budgets. Platform sets the caps. Developers just ship."</div>
+        </div>
+      </div>
+
+      <table>
+        <tr><th>Policy type</th><th>Plain English analogy</th><th>What to say</th></tr>
+        <tr>
+          <td><b>Rate limit</b></td>
+          <td>Speed limit on a road. The agent can go, just not infinitely fast.</td>
+          <td class="say">"One runaway agent can't starve every other team's requests."</td>
+        </tr>
+        <tr>
+          <td><b>Budget cap</b></td>
+          <td>A pre-paid card. The agent spends freely until it hits the cap — then it stops, not you.</td>
+          <td class="say">"We gave the agent a $5 budget. It physically cannot spend $500."</td>
+        </tr>
+        <tr>
+          <td><b>Routing rule</b></td>
+          <td>An expense policy — juniors fly economy, execs fly business.</td>
+          <td class="say">"Dev teams get small + mid. Only approved agents can touch frontier."</td>
+        </tr>
+        <tr>
+          <td><b>Kill threshold</b></td>
+          <td>A circuit breaker. Three identical API calls in a row trips it — same as electrical systems.</td>
+          <td class="say">"Loops get killed automatically. No pager, no alert fatigue."</td>
+        </tr>
+      </table>
+
+      <div class="caveat">
+        <b>Honest caveat (say this if asked):</b>
+        <ul>
+          <li>The policy table is <b>display only</b> in this demo — values are illustrative, not live config.</li>
+          <li>Enforcement in the simulation is hard-coded. In production, policies would be stored in a DB and evaluated at request time.</li>
+          <li>Production roadmap: policies as YAML/API config → per-org overrides → policy-as-code with git-backed audit trail.</li>
+        </ul>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ── HARD QUESTIONS ─────────────────────────────────────────── -->
+  <section>
+    <div class="s-head">
+      <h2 class="hard">
+        <span class="num">4</span>
+        <span class="tab-pill">Hard Questions</span>
+        &nbsp;— how to answer them
+      </h2>
+      <svg class="chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+    <div class="s-body">
+      <table>
+        <tr><th style="width:260px">Question</th><th>What to say</th></tr>
+        <tr>
+          <td><b>"Is this real data?"</b></td>
+          <td>No — this is a reference architecture simulator. The numbers come from a deterministic model seeded with realistic cost profiles. The <em>pattern</em> is real; the exact figures are illustrative. That's intentional — it lets us show the concept without needing live API keys.</td>
+        </tr>
+        <tr>
+          <td><b>"How do the fleet numbers hold up for our workload?"</b></td>
+          <td>They're directional. Your actual savings depend on how repetitive your tasks are (cache rate) and your task complexity mix (routing). We'd instrument your real traffic for 2 weeks to get a proper baseline.</td>
+        </tr>
+        <tr>
+          <td><b>"What stops the model from ignoring the policies?"</b></td>
+          <td>The control plane sits in front of the model, not next to it. The request never reaches the model if the policy says no. It's a proxy, not a prompt instruction — you can't jailbreak it.</td>
+        </tr>
+        <tr>
+          <td><b>"What if we already have LiteLLM / a gateway?"</b></td>
+          <td>TokenIQ sits on top of — or alongside — existing gateways. The router, cache, governor, and compressor are the logic layer. The transport layer is pluggable.</td>
+        </tr>
+        <tr>
+          <td><b>"How do you measure quality without human review?"</b></td>
+          <td>In this demo, quality is modelled. In production, you'd back it with an LLM judge, task-specific rubrics, or golden-set evals. The governor can be configured to kill a call if quality drops below a threshold.</td>
+        </tr>
+        <tr>
+          <td><b>"Can it route across different LLM providers — OpenAI, Anthropic, Gemini?"</b></td>
+          <td>Not in this demo — the router picks a tier (small/mid/frontier) but the provider is fixed. The <em>next</em> version makes the provider pluggable too. The key dependency is observability: once every call logs task type, model, cost, latency, and a quality score, the router can query that history and ask "which provider has the best cost/quality ratio for this task right now?" — and route there. Observability is the training data for intelligent routing.</td>
+        </tr>
+        <tr>
+          <td><b>"What's the difference between rules-based and intelligent routing?"</b></td>
+          <td>Rules-based is what you see today — task type maps to a fixed model tier, hardcoded, no feedback. Intelligent routing learns from every call: it tracks which model actually performed best for which task at what cost, and routes based on that evidence. Same pattern as how Netflix routes traffic — not by rule, but by what the data says works best right now.</td>
+        </tr>
+    </div>
+  </section>
+
+  <div class="footer">
+    jlanado/tokenIQ · companion to cue-card.html · tabs: Agent Simulator · Fleet Projection · Policies<br>
+    all numbers illustrative: small $0.30 · mid $3.00 · frontier $15.00 per 1M tokens · 365-day projection
+  </div>
+
+</div>
+
+<script>
+  document.querySelectorAll('section .s-head').forEach(head => {
+    head.addEventListener('click', () => {
+      head.closest('section').classList.toggle('collapsed');
+    });
+  });
+
+  document.getElementById('expand-all').onclick = () =>
+    document.querySelectorAll('section').forEach(s => s.classList.remove('collapsed'));
+
+  document.getElementById('collapse-all').onclick = () =>
+    document.querySelectorAll('section').forEach(s => s.classList.add('collapsed'));
+</script>

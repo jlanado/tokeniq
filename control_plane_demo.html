@@ -1,338 +1,1194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>TokenIQ — live demo</title>
+<title>TokenIQ — Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-  :root{
-    --bg:#0c0e12; --panel:#13161c; --panel2:#171b22; --line:#262c36;
-    --txt:#e7eaef; --muted:#8b929e; --dim:#5b626d;
-    --green:#37d98a; --amber:#f3b24c; --blue:#5aa9ff; --cyan:#34d6d0;
-    --red:#ff6060; --orange:#ff9d4d;
-    --mono:ui-monospace,"SF Mono","JetBrains Mono",Menlo,Consolas,monospace;
-    --sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  :root {
+    --bg: #f0f2f7;
+    --card: #ffffff;
+    --border: #e5e7eb;
+    --border-faint: #f3f4f6;
+    --txt: #111827;
+    --txt2: #374151;
+    --muted: #6b7280;
+    --dim: #9ca3af;
+    --blue: #2563eb;
+    --blue-soft: #dbeafe;
+    --blue-mid: #eff6ff;
+    --green: #16a34a;
+    --green-soft: #dcfce7;
+    --amber: #b45309;
+    --amber-soft: #fef3c7;
+    --red: #dc2626;
+    --red-soft: #fee2e2;
+    --purple: #7c3aed;
+    --purple-soft: #ede9fe;
+    --cyan: #0891b2;
+    --cyan-soft: #cffafe;
+    --sans: 'Inter', ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    --mono: 'JetBrains Mono', ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    --radius: 10px;
+    --shadow: 0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.04);
   }
-  *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--txt);font-family:var(--sans);
-    font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
-  .wrap{max-width:1180px;margin:0 auto;padding:22px}
-  .head{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;
-    border-bottom:1px solid var(--line);padding-bottom:14px;margin-bottom:18px}
-  .logo{font-family:var(--mono);font-size:11px;letter-spacing:3px;color:var(--green);
-    border:1px solid var(--green);padding:3px 8px;border-radius:4px}
-  h1{font-size:19px;font-weight:600;margin:0;letter-spacing:.2px}
-  .sub{color:var(--muted);font-size:12.5px}
-  .grid{display:grid;grid-template-columns:300px 1fr;gap:16px}
-  @media(max-width:880px){.grid{grid-template-columns:1fr}}
-  .panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px}
-  .panel h2{font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);
-    margin:0 0 12px;font-weight:600}
-  /* toggles */
-  .tog{display:flex;align-items:center;justify-content:space-between;padding:10px 0;
-    border-bottom:1px solid var(--line)}
-  .tog:last-of-type{border-bottom:0}
-  .tog .lab b{display:block;font-size:13.5px}
-  .tog .lab span{font-size:11.5px;color:var(--dim)}
-  .sw{position:relative;width:40px;height:22px;flex:none;cursor:pointer}
-  .sw input{position:absolute;opacity:0;width:100%;height:100%;cursor:pointer;margin:0}
-  .sw .track{position:absolute;inset:0;background:#2a313c;border-radius:11px;transition:.18s}
-  .sw .knob{position:absolute;top:3px;left:3px;width:16px;height:16px;background:#fff;
-    border-radius:50%;transition:.18s}
-  .sw input:checked ~ .track{background:var(--green)}
-  .sw input:checked ~ .knob{transform:translateX(18px)}
-  .btns{display:flex;flex-direction:column;gap:9px;margin-top:14px}
-  button.run{font-family:var(--sans);font-size:13.5px;font-weight:600;color:#0c0e12;
-    background:var(--green);border:0;border-radius:7px;padding:10px 12px;cursor:pointer;
-    transition:.12s;text-align:left}
-  button.run:hover{filter:brightness(1.08)}
-  button.ghost{background:transparent;color:var(--txt);border:1px solid var(--line)}
-  button.danger{background:var(--orange)}
-  button:disabled{opacity:.45;cursor:not-allowed}
-  /* stream */
-  .stream{height:340px;overflow-y:auto;font-family:var(--mono);font-size:12.5px;
-    background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:10px}
-  .stream::-webkit-scrollbar{width:8px}.stream::-webkit-scrollbar-thumb{background:#2a313c;border-radius:4px}
-  .row{display:grid;grid-template-columns:26px 92px 1fr 78px 64px;gap:8px;align-items:center;
-    padding:4px 4px;border-radius:4px;animation:in .22s ease}
-  .row + .row{margin-top:1px}
-  @keyframes in{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
-  .row .n{color:var(--dim)}
-  .row .kind{color:var(--muted)}
-  .badge{font-size:11px;padding:2px 7px;border-radius:4px;display:inline-block;font-weight:600}
-  .b-small{background:rgba(55,217,138,.15);color:var(--green)}
-  .b-mid{background:rgba(243,178,76,.15);color:var(--amber)}
-  .b-frontier{background:rgba(90,169,255,.15);color:var(--blue)}
-  .b-cache{background:rgba(52,214,208,.15);color:var(--cyan)}
-  .b-esc{background:rgba(255,157,77,.18);color:var(--orange)}
-  .b-kill{background:rgba(255,96,96,.18);color:var(--red)}
-  .row .tok{text-align:right;color:var(--muted)}
-  .row .cost{text-align:right;color:var(--txt)}
-  .row.killed{background:rgba(255,96,96,.06)}
-  .empty{color:var(--dim);font-family:var(--mono);font-size:12px;padding:18px;text-align:center}
-  /* metrics */
-  .mgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}
-  .metric{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:11px 12px}
-  .metric .k{font-size:10.5px;letter-spacing:.8px;text-transform:uppercase;color:var(--dim)}
-  .metric .v{font-family:var(--mono);font-size:20px;font-weight:600;margin-top:3px}
-  .metric .d{font-size:11px;color:var(--muted);margin-top:1px}
-  .hero{background:linear-gradient(0deg,var(--panel2),var(--panel2));border:1px solid var(--green);
-    border-radius:10px;padding:16px;margin-top:14px;display:flex;align-items:center;
-    justify-content:space-between;flex-wrap:wrap;gap:12px}
-  .hero .label{font-size:11px;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted)}
-  .hero .nums{font-family:var(--mono);font-size:15px;color:var(--muted);margin-top:4px}
-  .hero .nums b{color:var(--txt);font-size:26px;font-weight:600}
-  .hero .nums .strike{text-decoration:line-through;color:var(--dim)}
-  .hero .cut{font-family:var(--mono);font-size:34px;font-weight:700;color:var(--green)}
-  .fleet{margin-top:14px;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:14px}
-  .fleet .frow{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-  .fleet input[type=range]{flex:1;min-width:160px;accent-color:var(--green)}
-  .fleet .annual{font-family:var(--mono);font-size:24px;font-weight:700;color:var(--green)}
-  .note{font-size:11px;color:var(--dim);margin-top:10px;font-family:var(--mono)}
-  .q-bar{height:5px;background:#2a313c;border-radius:3px;overflow:hidden;margin-top:6px}
-  .q-fill{height:100%;background:var(--cyan)}
+
+  html.dark {
+    --bg: #0d1117;
+    --card: #161b22;
+    --border: #30363d;
+    --border-faint: #21262d;
+    --txt: #e6edf3;
+    --txt2: #c9d1d9;
+    --muted: #8b949e;
+    --dim: #484f58;
+    --blue-soft: #1f3a6e;
+    --blue-mid: #162032;
+    --green-soft: #0d2a1a;
+    --amber-soft: #2d1f07;
+    --red-soft: #2d0f0f;
+    --purple-soft: #1e1533;
+    --cyan-soft: #072028;
+    --shadow: 0 1px 3px rgba(0,0,0,.4), 0 1px 2px rgba(0,0,0,.3);
+  }
+
+  html { transition: background .2s; }
+  body { transition: background .2s, color .2s; }
+
+  /* donut tooltip */
+  #donut-tip {
+    display: none;
+    position: fixed;
+    background: var(--txt);
+    color: var(--card);
+    font-size: 12px;
+    font-family: var(--sans);
+    padding: 6px 10px;
+    border-radius: 6px;
+    pointer-events: none;
+    white-space: nowrap;
+    z-index: 999;
+    box-shadow: 0 4px 12px rgba(0,0,0,.2);
+    line-height: 1.6;
+  }
+
+  /* theme toggle button */
+  .theme-btn {
+    width: 32px; height: 32px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; color: var(--muted);
+    background: transparent; border: none; font-size: 15px;
+    transition: background .12s, color .12s;
+  }
+  .theme-btn:hover { background: var(--bg); color: var(--txt); }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--sans);
+    font-size: 14px;
+    line-height: 1.5;
+    background: var(--bg);
+    color: var(--txt);
+    -webkit-font-smoothing: antialiased;
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  /* ─── Sidebar ─────────────────────────────────── */
+  .sidebar {
+    width: 56px;
+    background: var(--card);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    padding: 14px 0 16px;
+    flex-shrink: 0;
+    gap: 2px;
+    overflow: hidden;
+    transition: width .22s ease;
+    z-index: 10;
+  }
+  .sidebar.open { width: 188px; }
+  .sb-logo {
+    width: 34px; height: 34px;
+    background: var(--blue);
+    border-radius: 9px;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 18px;
+    flex-shrink: 0;
+    cursor: pointer;
+    transition: filter .12s;
+  }
+  .sb-logo:hover { filter: brightness(1.15); }
+  .sb-logo svg { color: #fff; }
+  .sb-item {
+    height: 38px;
+    margin: 0 9px;
+    border-radius: 8px;
+    display: flex; align-items: center;
+    padding: 0 9px;
+    gap: 10px;
+    cursor: pointer; color: var(--dim);
+    transition: background .12s, color .12s;
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+  .sb-item svg { flex-shrink: 0; }
+  .sb-item:hover { background: var(--bg); color: var(--txt2); }
+  .sb-item.active { background: var(--blue-soft); color: var(--blue); }
+  .sb-label {
+    font-size: 12.5px; font-weight: 500;
+    opacity: 0;
+    transition: opacity .1s;
+  }
+  .sidebar.open .sb-label { opacity: 1; transition: opacity .18s .1s; }
+  .sb-sep { flex: 1; }
+
+  /* ─── Main column ─────────────────────────────── */
+  .main { flex: 1; display: flex; flex-direction: column; min-width: 0; overflow: hidden; }
+
+  /* ─── Header ──────────────────────────────────── */
+  .header {
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    height: 54px;
+    padding: 0 22px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+  .brand { font-size: 28px; font-weight: 700; letter-spacing: -.6px; color: var(--txt); }
+  .brand em { color: var(--blue); font-style: normal; }
+  .brand-sub { font-size: 15px; color: var(--muted); margin-left: 6px; }
+  .h-gap { flex: 1; }
+  .h-date { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 5px; }
+  .h-icon {
+    width: 32px; height: 32px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; color: var(--muted); transition: background .12s, color .12s;
+  }
+  .h-icon:hover { background: var(--bg); color: var(--txt); }
+  .avatar {
+    width: 30px; height: 30px; border-radius: 50%;
+    background: var(--blue); color: #fff;
+    font-size: 12px; font-weight: 600;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+  }
+
+  /* ─── Tab bar ─────────────────────────────────── */
+  .tabbar {
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    padding: 0 22px;
+    display: flex;
+    align-items: center;
+    gap: 0;
+    flex-shrink: 0;
+  }
+  .tab {
+    padding: 11px 14px;
+    font-size: 13.5px; font-weight: 500;
+    color: var(--muted);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: color .12s, border-color .12s;
+    white-space: nowrap;
+  }
+  .tab:hover { color: var(--txt); }
+  .tab.active { color: var(--blue); border-bottom-color: var(--blue); }
+  .mode-pill {
+    margin-left: 10px;
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 11.5px; font-weight: 500;
+    padding: 3px 10px; border-radius: 20px;
+    transition: background .2s, color .2s;
+  }
+  .mode-pill .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+  .mode-pill.active  { background: var(--green-soft); color: var(--green); }
+  .mode-pill.naive   { background: var(--border-faint); color: var(--muted); }
+  .mode-pill.partial { background: var(--amber-soft); color: var(--amber); }
+
+  /* ─── Scrollable content ──────────────────────── */
+  .content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 18px 20px 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .content::-webkit-scrollbar { width: 5px; }
+  .content::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  /* ─── Cards ───────────────────────────────────── */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+  }
+  .card-hd {
+    padding: 14px 16px 0;
+    display: flex; align-items: flex-start; justify-content: space-between;
+  }
+  .card-title { font-size: 13.5px; font-weight: 600; color: var(--txt); }
+  .card-sub { font-size: 11.5px; color: var(--muted); margin-top: 1px; }
+  .card-body { padding: 12px 16px 16px; }
+
+  /* ─── Top grid ────────────────────────────────── */
+  .top-grid {
+    display: grid;
+    grid-template-columns: 272px 1fr;
+    gap: 14px;
+    align-items: start;
+  }
+
+  /* ─── Controls ────────────────────────────────── */
+  .master-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border-faint);
+    margin-bottom: 0;
+  }
+  .master-row .ml { font-size: 13px; font-weight: 600; }
+  .master-row .ms { font-size: 11px; color: var(--dim); margin-top: 1px; }
+  .tog-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border-faint);
+  }
+  .tog-row:last-of-type { border-bottom: none; }
+  .tog-lab b { display: block; font-size: 13px; font-weight: 500; color: var(--txt2); }
+  .tog-lab span { font-size: 11px; color: var(--dim); }
+  /* switch */
+  .sw { position: relative; width: 36px; height: 20px; flex-shrink: 0; cursor: pointer; }
+  .sw input { position: absolute; opacity: 0; width: 100%; height: 100%; cursor: pointer; margin: 0; }
+  .sw .tr { position: absolute; inset: 0; background: #d1d5db; border-radius: 10px; transition: background .18s; }
+  .sw .kn { position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; background: #fff; border-radius: 50%; transition: transform .18s; box-shadow: 0 1px 3px rgba(0,0,0,.22); }
+  .sw input:checked ~ .tr { background: var(--blue); }
+  .sw input:checked ~ .kn { transform: translateX(16px); }
+  /* buttons */
+  .btn-group { display: flex; flex-direction: column; gap: 7px; margin-top: 14px; }
+  .btn {
+    font-family: var(--sans); font-size: 13px; font-weight: 500;
+    border: none; border-radius: 7px; padding: 9px 13px;
+    cursor: pointer; transition: filter .12s, background .12s;
+    display: flex; align-items: center; gap: 7px; text-align: left;
+  }
+  .btn:disabled { opacity: .4; cursor: not-allowed; }
+  .btn-primary { background: var(--green); color: #fff; white-space: nowrap; }
+  .btn-primary:hover:not(:disabled) { filter: brightness(1.1); }
+  .btn-warn { background: #f59e0b; color: #fff; border: none; }
+  .btn-warn:hover:not(:disabled) { filter: brightness(1.1); }
+  .btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+  .btn-ghost:hover:not(:disabled) { background: var(--bg); color: var(--txt); }
+  .ctrl-note { font-size: 11px; color: var(--dim); margin-top: 10px; line-height: 1.7; font-family: var(--mono); }
+
+  /* ─── Right column ────────────────────────────── */
+  .right-col { display: flex; flex-direction: column; gap: 14px; }
+
+  /* ─── KPI strip ───────────────────────────────── */
+  .kpi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .kpi {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: var(--radius); box-shadow: var(--shadow);
+    padding: 13px 15px;
+  }
+  .kpi .k {
+    font-size: 10.5px; font-weight: 600; letter-spacing: .6px;
+    text-transform: uppercase; color: var(--muted);
+  }
+  .kpi .v {
+    font-family: var(--mono); font-size: 21px; font-weight: 500;
+    color: var(--txt); margin-top: 4px; letter-spacing: -.5px;
+  }
+  .kpi .d { font-size: 11px; color: var(--dim); margin-top: 2px; }
+  .kpi .qbar { height: 4px; background: var(--bg); border-radius: 2px; margin-top: 6px; overflow: hidden; }
+  .kpi .qfill { height: 100%; background: var(--blue); border-radius: 2px; transition: width .4s ease; }
+
+  /* ─── Stream ──────────────────────────────────── */
+  .stream-wrap { max-height: 248px; overflow-y: auto; }
+  .stream-wrap::-webkit-scrollbar { width: 4px; }
+  .stream-wrap::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+  .stream-empty {
+    text-align: center; padding: 34px 16px; color: var(--dim); font-size: 13px;
+  }
+  .stream-empty .ei { font-size: 26px; margin-bottom: 8px; }
+  table.stbl { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  table.stbl th {
+    font-size: 10.5px; font-weight: 600; letter-spacing: .5px;
+    text-transform: uppercase; color: var(--muted);
+    padding: 0 12px 9px; border-bottom: 1px solid var(--border);
+    text-align: left;
+  }
+  table.stbl th:nth-child(4), table.stbl th:nth-child(5) { text-align: right; }
+  table.stbl td {
+    padding: 7px 12px; border-bottom: 1px solid var(--border-faint);
+    vertical-align: middle;
+  }
+  table.stbl tr:last-child td { border-bottom: none; }
+  table.stbl tr.killed td { background: var(--red-soft); }
+  table.stbl tr { animation: rowIn .2s ease; }
+  @keyframes rowIn { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: none; } }
+  .n-cell { color: var(--dim); font-family: var(--mono); font-size: 11px; }
+  .kind-cell { color: var(--txt2); font-family: var(--mono); font-size: 12px; }
+  td.tok { text-align: right; font-family: var(--mono); color: var(--muted); }
+  td.cst { text-align: right; font-family: var(--mono); font-weight: 500; color: var(--txt); }
+  /* badges */
+  .badge {
+    font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 20px;
+    display: inline-flex; align-items: center; gap: 3px; white-space: nowrap;
+  }
+  .b-small    { background: var(--green-soft); color: var(--green); }
+  .b-mid      { background: var(--amber-soft); color: var(--amber); }
+  .b-frontier { background: var(--blue-soft);  color: var(--blue); }
+  .b-cache    { background: var(--cyan-soft);  color: var(--cyan); }
+  .b-esc      { background: var(--purple-soft);color: var(--purple); }
+  .b-kill     { background: var(--red-soft);   color: var(--red); }
+
+  /* ─── Bottom grid ─────────────────────────────── */
+  .bot-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+  /* ─── Donut ───────────────────────────────────── */
+  .donut-inner { display: flex; align-items: center; gap: 10px; padding-top: 2px; }
+  .donut-svg-wrap { flex-shrink: 0; color: var(--txt); }
+  .legend { flex: 1; }
+  .leg-row {
+    display: flex; align-items: center; gap: 8px;
+    padding: 5px 0; border-bottom: 1px solid var(--border-faint); font-size: 12.5px;
+  }
+  .leg-row:last-child { border-bottom: none; }
+  .leg-dot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+  .leg-name { flex: 1; color: var(--muted); }
+  .leg-val { font-family: var(--mono); font-weight: 500; color: var(--txt); min-width: 52px; text-align: right; }
+  .leg-pct { font-family: var(--mono); color: var(--dim); min-width: 36px; text-align: right; }
+
+  /* ─── Hero savings ────────────────────────────── */
+  .hero-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; }
+  .hero-label { font-size: 11px; text-transform: uppercase; letter-spacing: .7px; color: var(--muted); font-weight: 600; margin-bottom: 5px; }
+  .hero-nums { font-size: 14px; color: var(--muted); }
+  .hero-nums .strike { text-decoration: line-through; color: var(--dim); }
+  .hero-nums .cur { font-family: var(--mono); font-size: 26px; font-weight: 500; color: var(--txt); letter-spacing: -1px; }
+  .hero-cut { font-family: var(--mono); font-size: 38px; font-weight: 700; color: var(--green); letter-spacing: -2px; }
+  .lever-head { font-size: 11px; text-transform: uppercase; letter-spacing: .6px; color: var(--muted); font-weight: 600; margin-bottom: 10px; }
+  .lever-row { margin-bottom: 10px; }
+  .lever-top { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 3px; }
+  .lever-cost { font-family: var(--mono); font-size: 11px; color: var(--dim); margin-top: 2px; }
+  .lever-bar-bg { height: 6px; background: var(--border-faint); border-radius: 3px; overflow: hidden; }
+  .lever-bar-fill { height: 100%; border-radius: 3px; transition: width .45s ease; }
+
+  /* ─── Fleet ───────────────────────────────────── */
+  .fleet-slider-row { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+  .fleet-slider-row label { font-size: 12.5px; color: var(--muted); white-space: nowrap; }
+  .fleet-slider-row input[type=range] { flex: 1; accent-color: var(--blue); cursor: pointer; }
+  .fleet-slider-row .fval { font-family: var(--mono); font-size: 14px; font-weight: 500; color: var(--txt); min-width: 68px; text-align: right; }
+  .fleet-stat { display: flex; justify-content: space-between; align-items: baseline; padding: 9px 0; border-top: 1px solid var(--border-faint); }
+  .fleet-stat .fs-l { font-size: 12.5px; color: var(--muted); }
+  .fleet-stat .fs-v { font-family: var(--mono); font-size: 18px; font-weight: 600; }
+  .fleet-stat .fs-v.gross { color: var(--amber); }
+  .fleet-stat .fs-v.save  { color: var(--green); }
+  .fleet-note { font-size: 11px; color: var(--dim); margin-top: 10px; line-height: 1.7; }
+
+  /* tab-specific layout overrides */
+  body.tab-simulator .stream-wrap { max-height: 480px; }
+  body.tab-fleet     #s-fleet     { display: flex; flex-direction: column; gap: 14px; }
+
+  @media (max-width: 920px) {
+    .top-grid { grid-template-columns: 1fr; }
+    .bot-grid  { grid-template-columns: 1fr; }
+    .kpi-grid  { grid-template-columns: repeat(2, 1fr); }
+  }
 </style>
+</head>
+<body>
 
-<div class="wrap">
-  <div class="head">
-    <span class="logo">CTRL-PLANE</span>
-    <h1>TokenIQ</h1>
-    <span class="sub">— meter · route · cache · compress · govern · price every LLM call</span>
+<!-- ── Sidebar ── -->
+<nav class="sidebar">
+  <div class="sb-logo">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
   </div>
-  <div style="font-size:12px;color:var(--muted);margin:-6px 0 16px;font-family:var(--mono)">
-    A <b style="color:var(--txt)">control plane</b>, not a compressor — compression is one pluggable stage (e.g. Headroom). The moat: routing · governance · outcome pricing.
+  <div class="sb-item active" data-tab="dashboard" title="Dashboard">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+    <span class="sb-label">Dashboard</span>
+  </div>
+  <div class="sb-item" data-tab="fleet" title="Fleet Projection">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+    <span class="sb-label">Fleet Projection</span>
+  </div>
+  <div class="sb-item" data-tab="simulator" title="Agent Simulator">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+    <span class="sb-label">Agent Simulator</span>
+  </div>
+  <div class="sb-item" data-tab="policies" title="Policies">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+    <span class="sb-label">Policies</span>
+  </div>
+  <div class="sb-sep"></div>
+  <div class="sb-item" title="Settings">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    <span class="sb-label">Settings</span>
+  </div>
+  <div class="sb-item" title="Account">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+    <span class="sb-label">Account</span>
+  </div>
+</nav>
+
+<!-- ── Main ── -->
+<div class="main">
+
+  <!-- Header -->
+  <header class="header">
+    <div class="brand">Token<em>IQ</em></div>
+    <div class="brand-sub">AI FinOps &amp; Governance Platform</div>
+    <div class="h-gap"></div>
+    <div class="h-date">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      <span id="hdr-date"></span>
+    </div>
+    <div class="h-icon">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    </div>
+    <button class="theme-btn" id="theme-toggle" title="Toggle dark mode">
+      <svg id="theme-icon-sun" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+      <svg id="theme-icon-moon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    </button>
+    <div class="h-icon">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+    </div>
+    <div class="avatar">JL</div>
+  </header>
+
+  <!-- Tab bar -->
+  <div class="tabbar">
+    <div class="tab active" data-tab="dashboard">Dashboard</div>
+    <div class="tab" data-tab="simulator">Agent Simulator</div>
+    <div class="tab" data-tab="fleet">Fleet Projection</div>
+    <div class="tab" data-tab="policies">Policies</div>
+    <div id="mode-pill" class="mode-pill naive"><span class="dot"></span><span id="mode-txt">Naive baseline</span></div>
   </div>
 
-  <div class="grid">
-    <!-- LEFT: controls -->
-    <div>
-      <div class="panel">
-        <h2>Control plane</h2>
-        <div class="tog" style="padding-bottom:12px;margin-bottom:2px;border-bottom:1px solid var(--line)">
-          <span class="lab"><b id="master-label" style="font-size:14px;color:var(--green)">Control plane active</b><span>enable / disable all features</span></span>
-          <label class="sw"><input type="checkbox" id="t-master" checked><span class="track"></span><span class="knob"></span></label>
+  <!-- Scrollable content -->
+  <div class="content">
+
+    <!-- ── Tab: Dashboard + Agent Simulator (shared top section) ── -->
+    <div id="s-top">
+    <!-- Top: controls + right column -->
+    <div class="top-grid">
+
+      <!-- Controls card -->
+      <div class="card">
+        <div class="card-hd">
+          <div><div class="card-title">Control Plane</div><div class="card-sub">Configure optimization features</div></div>
         </div>
-        <div class="tog">
-          <span class="lab"><b>Router</b><span>cheapest model that passes</span></span>
-          <label class="sw"><input type="checkbox" id="t-router" checked><span class="track"></span><span class="knob"></span></label>
+        <div class="card-body">
+          <div class="master-row">
+            <div>
+              <div class="ml" id="master-label" style="color:var(--blue)">Control plane active</div>
+              <div class="ms">enable / disable all features</div>
+            </div>
+            <label class="sw"><input type="checkbox" id="t-master" checked><span class="tr"></span><span class="kn"></span></label>
+          </div>
+          <div class="tog-row">
+            <div class="tog-lab"><b>Router</b><span>cheapest model that clears the quality bar</span></div>
+            <label class="sw"><input type="checkbox" id="t-router" checked><span class="tr"></span><span class="kn"></span></label>
+          </div>
+          <div class="tog-row">
+            <div class="tog-lab"><b>Semantic Cache</b><span>reuse prior answers on similar prompts</span></div>
+            <label class="sw"><input type="checkbox" id="t-cache" checked><span class="tr"></span><span class="kn"></span></label>
+          </div>
+          <div class="tog-row">
+            <div class="tog-lab"><b>Budget Governor</b><span>per-run cap + runaway kill switch</span></div>
+            <label class="sw"><input type="checkbox" id="t-gov" checked><span class="tr"></span><span class="kn"></span></label>
+          </div>
+          <div class="tog-row">
+            <div class="tog-lab"><b>Payload Compression</b><span>shrink context (Headroom-style)</span></div>
+            <label class="sw"><input type="checkbox" id="t-comp" checked><span class="tr"></span><span class="kn"></span></label>
+          </div>
+          <div class="btn-group">
+            <button class="btn btn-primary" id="run-ticket">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              Run agent — resolve JIRA-4821
+            </button>
+            <button class="btn btn-warn" id="run-loop">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              Run buggy agent (retry loop)
+            </button>
+            <button class="btn btn-ghost" id="reset">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.95"/></svg>
+              Reset
+            </button>
+          </div>
+          <div class="ctrl-note">All off = "naive" baseline: frontier-only, no cache, no governor.</div>
         </div>
-        <div class="tog">
-          <span class="lab"><b>Semantic cache</b><span>reuse prior answers</span></span>
-          <label class="sw"><input type="checkbox" id="t-cache" checked><span class="track"></span><span class="knob"></span></label>
+      </div>
+
+      <!-- Right column -->
+      <div class="right-col">
+        <!-- KPI strip -->
+        <div class="kpi-grid">
+          <div class="kpi"><div class="k">Tokens Used</div><div class="v" id="m-tok">—</div><div class="d" id="m-tok-d">&nbsp;</div></div>
+          <div class="kpi"><div class="k">Cache Hit Rate</div><div class="v" id="m-cache">—</div><div class="d">reused calls</div></div>
+          <div class="kpi"><div class="k">Routing Savings</div><div class="v" id="m-route">—</div><div class="d">vs all-frontier</div></div>
+          <div class="kpi"><div class="k">Quality Score</div><div class="v" id="m-q">—</div><div class="qbar"><div class="qfill" id="m-qbar" style="width:0%"></div></div></div>
+          <div class="kpi"><div class="k">Run Cost</div><div class="v" id="m-cost">—</div><div class="d" id="m-cost-d">&nbsp;</div></div>
+          <div class="kpi"><div class="k">Compression</div><div class="v" id="m-comp">—</div><div class="d">context shrunk</div></div>
         </div>
-        <div class="tog">
-          <span class="lab"><b>Budget governor</b><span>cap + runaway kill switch</span></span>
-          <label class="sw"><input type="checkbox" id="t-gov" checked><span class="track"></span><span class="knob"></span></label>
+
+        <!-- Stream card -->
+        <div class="card">
+          <div class="card-hd">
+            <div><div class="card-title">Request Stream</div><div class="card-sub">meter → cache → governor → router → compress → model → quality gate</div></div>
+          </div>
+          <div class="card-body" style="padding-top:10px">
+            <div class="stream-wrap" id="stream-wrap">
+              <div class="stream-empty" id="stream-empty">
+                <div class="ei">⚡</div>
+                Press <b>Run agent</b> to watch calls flow through the control plane
+              </div>
+              <table class="stbl" id="stream-table" style="display:none">
+                <thead><tr>
+                  <th style="width:26px">#</th>
+                  <th>Task</th>
+                  <th>Decision</th>
+                  <th>Tokens</th>
+                  <th>Cost</th>
+                </tr></thead>
+                <tbody id="stream-body"></tbody>
+              </table>
+            </div>
+          </div>
         </div>
-        <div class="tog">
-          <span class="lab"><b>Payload compression</b><span>shrink context (Headroom-style)</span></span>
-          <label class="sw"><input type="checkbox" id="t-comp" checked><span class="track"></span><span class="knob"></span></label>
+      </div><!-- /right-col -->
+    </div><!-- /top-grid -->
+    </div><!-- /s-top -->
+
+    <!-- ── Tab: Dashboard only (analysis + fleet) ── -->
+    <div id="s-analysis">
+    <!-- Bottom: donut + hero -->
+    <div class="bot-grid">
+
+      <!-- Cost breakdown donut -->
+      <div class="card">
+        <div class="card-hd">
+          <div><div class="card-title">Cost Breakdown by Model Tier</div><div class="card-sub" id="donut-sub-date">Run an agent to see cost breakdown</div></div>
         </div>
-        <div class="btns">
-          <button class="run" id="run-ticket">▶ &nbsp;Run agent — resolve JIRA-4821</button>
-          <button class="run danger" id="run-loop">⚠ &nbsp;Run buggy agent (retry loop)</button>
-          <button class="run ghost" id="reset">↺ &nbsp;Reset</button>
+        <div class="card-body">
+          <div class="donut-inner">
+            <div class="donut-svg-wrap">
+              <svg width="160" height="160" viewBox="0 0 160 160" id="donut-svg" style="overflow:visible">
+                <circle cx="80" cy="80" r="62" fill="none" stroke="#f3f4f6" stroke-width="26"/>
+                <g id="donut-arcs" transform="rotate(-90 80 80)"></g>
+                <text x="80" y="75" text-anchor="middle" font-size="13" font-weight="600" fill="currentColor" font-family="'JetBrains Mono',monospace" id="donut-total">—</text>
+                <text x="80" y="92" text-anchor="middle" font-size="11" fill="currentColor" style="opacity:.5" font-family="'Inter',sans-serif" id="donut-label">total</text>
+              </svg>
+              <div id="donut-tip"></div>
+            </div>
+            <div class="legend" id="donut-legend">
+              <div class="leg-row"><span class="leg-dot" style="background:#2563eb"></span><span class="leg-name">Frontier</span><span class="leg-val" id="lv-frontier">—</span><span class="leg-pct" id="lp-frontier">—</span></div>
+              <div class="leg-row"><span class="leg-dot" style="background:#f59e0b"></span><span class="leg-name">Mid</span><span class="leg-val" id="lv-mid">—</span><span class="leg-pct" id="lp-mid">—</span></div>
+              <div class="leg-row"><span class="leg-dot" style="background:#10b981"></span><span class="leg-name">Small</span><span class="leg-val" id="lv-small">—</span><span class="leg-pct" id="lp-small">—</span></div>
+              <div class="leg-row"><span class="leg-dot" style="background:#06b6d4"></span><span class="leg-name">Cache</span><span class="leg-val">$0.00</span><span class="leg-pct" style="color:var(--cyan)">free</span></div>
+            </div>
+          </div>
         </div>
-        <div class="note">All off = "naive" baseline:<br>frontier-only, no cache, no governor.</div>
+      </div>
+
+      <!-- Hero savings + lever stack -->
+      <div class="card">
+        <div class="card-hd">
+          <div><div class="card-title">Cost per Resolved Ticket</div><div class="card-sub">Naive baseline vs. TokenIQ control plane</div></div>
+        </div>
+        <div class="card-body">
+          <div class="hero-row">
+            <div>
+              <div class="hero-label">Savings vs naive</div>
+              <div class="hero-nums">
+                <span class="strike" id="h-naive">—</span>
+                <span style="margin:0 6px;color:var(--dim)">→</span>
+                <span class="cur" id="h-cur">—</span>
+              </div>
+            </div>
+            <div class="hero-cut" id="h-cut">—</div>
+          </div>
+          <div style="border-top:1px solid var(--border-faint);padding-top:14px">
+            <div class="lever-head">Optimization lever stack</div>
+            <div id="lever-stack"><div style="font-size:12px;color:var(--dim)">Run agent to see compounding savings</div></div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /bot-grid -->
+    </div><!-- /s-analysis -->
+
+    <!-- ── Tab: Fleet Projection ── -->
+    <div id="s-fleet">
+    <div class="card">
+      <div class="card-hd">
+        <div><div class="card-title">Fleet Projection</div><div class="card-sub">Gross annual cost and estimated savings at enterprise scale (365 days)</div></div>
+      </div>
+      <div class="card-body">
+        <div class="fleet-slider-row">
+          <label>Agent runs / day</label>
+          <input type="range" id="fleet-range" min="1000" max="100000" step="1000" value="50000">
+          <div class="fval" id="fleet-val">50,000</div>
+        </div>
+        <div class="fleet-stat">
+          <span class="fs-l">Gross annual cost (no control plane)</span>
+          <span class="fs-v gross" id="fleet-gross">—</span>
+        </div>
+        <div class="fleet-stat">
+          <span class="fs-l">Estimated annual savings with TokenIQ</span>
+          <span class="fs-v save" id="fleet-annual">—</span>
+        </div>
+        <div class="fleet-note">
+          Compression is a pluggable stage (e.g. Headroom). The defensible layer is routing · governance · outcome pricing.<br>
+          Prices illustrative: small $0.30 · mid $3.00 · frontier $15.00 per 1M tokens. Same logic as the Python gateway.
+        </div>
       </div>
     </div>
 
-    <!-- RIGHT: stream + metrics -->
-    <div>
-      <div class="panel">
-        <h2>Request stream <span id="mode-tag" style="color:var(--green)"></span></h2>
-        <div class="stream" id="stream"><div class="empty">Press “Run agent” to watch calls flow through the control plane.</div></div>
-
-        <div class="mgrid">
-          <div class="metric"><div class="k">Tokens</div><div class="v" id="m-tok">—</div><div class="d" id="m-tok-d"></div></div>
-          <div class="metric"><div class="k">Cache hit rate</div><div class="v" id="m-cache">—</div><div class="d">reused calls</div></div>
-          <div class="metric"><div class="k">Routing savings</div><div class="v" id="m-route">—</div><div class="d">vs all-frontier</div></div>
-          <div class="metric"><div class="k">Quality (Q)</div><div class="v" id="m-q">—</div><div class="q-bar"><div class="q-fill" id="m-qbar" style="width:0%"></div></div></div>
-          <div class="metric"><div class="k">Run cost</div><div class="v" id="m-cost">—</div><div class="d" id="m-cost-d"></div></div>
-          <div class="metric"><div class="k">Compression</div><div class="v" id="m-comp">—</div><div class="d">context shrunk</div></div>
-        </div>
-
-        <div class="hero">
-          <div>
-            <div class="label">Cost per resolved ticket</div>
-            <div class="nums"><span class="strike" id="h-naive">—</span> &rarr; <b id="h-cur">—</b></div>
-          </div>
-          <div class="cut" id="h-cut">—</div>
-        </div>
-
-        <div class="fleet">
-          <div class="label" style="font-size:11px;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted)">Fleet projection</div>
-          <div class="frow" style="margin-top:10px">
-            <span style="font-family:var(--mono);font-size:12.5px;color:var(--muted)">Agent runs/day</span>
-            <input type="range" id="fleet-range" min="1000" max="100000" step="1000" value="50000">
-            <span style="font-family:var(--mono);font-size:14px;width:74px;text-align:right" id="fleet-val">50,000</span>
-          </div>
-          <div class="frow" style="margin-top:12px;justify-content:space-between">
-            <span style="color:var(--muted);font-size:12.5px">Gross annual cost (no control plane)</span>
-            <span style="font-family:var(--mono);font-size:18px;font-weight:600;color:var(--amber)" id="fleet-gross">—</span>
-          </div>
-          <div class="frow" style="margin-top:8px;justify-content:space-between">
-            <span style="color:var(--muted);font-size:12.5px">Estimated annual savings (365 days)</span>
-            <span class="annual" id="fleet-annual">—</span>
-          </div>
-          <div class="note">Compression is a pluggable stage (e.g. Headroom). The defensible layer is routing · governance · outcome pricing.<br>Prices illustrative: small $0.30 · mid $3.00 · frontier $15.00 per 1M tokens. Same logic as the Python gateway.</div>
-        </div>
+    <!-- Fleet scenarios table -->
+    <div class="card">
+      <div class="card-hd"><div><div class="card-title">Scenario Comparison</div><div class="card-sub">Annual cost and savings across fleet sizes · all control plane features on</div></div></div>
+      <div class="card-body" style="padding-top:10px">
+        <table class="stbl" id="fleet-scenarios-table">
+          <thead><tr>
+            <th>Fleet size (runs/day)</th>
+            <th style="text-align:right">Naive annual cost</th>
+            <th style="text-align:right">With TokenIQ</th>
+            <th style="text-align:right">Annual savings</th>
+            <th style="text-align:right">Reduction</th>
+          </tr></thead>
+          <tbody id="fleet-scenarios-body"></tbody>
+        </table>
       </div>
     </div>
-  </div>
-</div>
+    </div><!-- /s-fleet -->
+
+    <!-- ── Tab: Policies ── -->
+    <div id="s-policies" style="display:none">
+
+      <div class="bot-grid">
+        <!-- Governor policy -->
+        <div class="card">
+          <div class="card-hd"><div><div class="card-title">Budget Governor</div><div class="card-sub">Per-run guardrails and kill-switch thresholds</div></div></div>
+          <div class="card-body">
+            <table class="stbl">
+              <thead><tr><th>Rule</th><th style="text-align:right">Value</th><th style="text-align:right">Action on breach</th></tr></thead>
+              <tbody>
+                <tr><td>Token budget per run</td><td class="cst">800,000</td><td style="text-align:right"><span class="badge b-kill">KILL RUN</span></td></tr>
+                <tr><td>Identical call loop limit</td><td class="cst">3×</td><td style="text-align:right"><span class="badge b-kill">KILL RUN</span></td></tr>
+                <tr><td>Cache hit</td><td class="cst">Jaccard ≥ 0.85</td><td style="text-align:right"><span class="badge b-cache">SERVE CACHED</span></td></tr>
+                <tr><td>Quality gate pass threshold</td><td class="cst">Q ≥ 0.80</td><td style="text-align:right"><span class="badge b-esc">ESCALATE TIER</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Routing policy -->
+        <div class="card">
+          <div class="card-hd"><div><div class="card-title">Model Routing Policy</div><div class="card-sub">Cheapest tier whose capability ≥ task requirement (cold-start heuristic)</div></div></div>
+          <div class="card-body">
+            <table class="stbl">
+              <thead><tr><th>Task type</th><th style="text-align:right">Min capability</th><th style="text-align:right">Routed tier</th></tr></thead>
+              <tbody>
+                <tr><td class="kind-cell">classify</td>   <td class="tok">0.50</td><td style="text-align:right"><span class="badge b-small">SMALL</span></td></tr>
+                <tr><td class="kind-cell">retrieve</td>   <td class="tok">0.55</td><td style="text-align:right"><span class="badge b-small">SMALL</span></td></tr>
+                <tr><td class="kind-cell">summarize</td>  <td class="tok">0.60</td><td style="text-align:right"><span class="badge b-small">SMALL</span></td></tr>
+                <tr><td class="kind-cell">write_tests</td><td class="tok">0.78</td><td style="text-align:right"><span class="badge b-mid">MID</span></td></tr>
+                <tr><td class="kind-cell">review</td>     <td class="tok">0.80</td><td style="text-align:right"><span class="badge b-mid">MID</span></td></tr>
+                <tr><td class="kind-cell">codegen</td>    <td class="tok">0.85</td><td style="text-align:right"><span class="badge b-frontier">FRONTIER</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Task specs + compression table -->
+      <div class="card">
+        <div class="card-hd"><div><div class="card-title">Task Specifications &amp; Compression Profile</div><div class="card-sub">Token footprint and payload compression ratios per task type</div></div></div>
+        <div class="card-body" style="padding-top:10px">
+          <table class="stbl">
+            <thead><tr>
+              <th>Task type</th>
+              <th style="text-align:right">Raw tokens</th>
+              <th style="text-align:right">Context fraction</th>
+              <th style="text-align:right">Compression ratio</th>
+              <th style="text-align:right">Compressed tokens</th>
+              <th style="text-align:right">Token saving</th>
+            </tr></thead>
+            <tbody id="policy-task-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Model tiers reference -->
+      <div class="card">
+        <div class="card-hd"><div><div class="card-title">Model Tier Reference</div><div class="card-sub">Illustrative pricing · swap for real provider rates in production</div></div></div>
+        <div class="card-body" style="padding-top:10px">
+          <table class="stbl">
+            <thead><tr><th>Tier</th><th style="text-align:right">Price / 1M tokens</th><th style="text-align:right">Capability score</th><th style="text-align:right">Example models</th></tr></thead>
+            <tbody>
+              <tr><td><span class="badge b-small">SMALL</span></td>  <td class="cst">$0.30</td><td class="tok">0.70</td><td style="text-align:right;color:var(--muted)">Haiku, GPT-4o-mini, Gemini Flash</td></tr>
+              <tr><td><span class="badge b-mid">MID</span></td>      <td class="cst">$3.00</td><td class="tok">0.88</td><td style="text-align:right;color:var(--muted)">Sonnet, GPT-4o, Gemini Pro</td></tr>
+              <tr><td><span class="badge b-frontier">FRONTIER</span></td><td class="cst">$15.00</td><td class="tok">0.97</td><td style="text-align:right;color:var(--muted)">Opus, GPT-4, Gemini Ultra</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div><!-- /s-policies -->
+
+  </div><!-- /content -->
+</div><!-- /main -->
 
 <script>
-const TIERS=[{name:'small',price:0.30,cap:0.70},{name:'mid',price:3.00,cap:0.88},{name:'frontier',price:15.00,cap:0.97}];
-const FRONTIER=TIERS[2];
-const SPECS={classify:[0.50,5000],retrieve:[0.55,12000],summarize:[0.60,8000],write_tests:[0.78,20000],review:[0.80,25000],codegen:[0.85,32000]};
-const COMPRESS={classify:[0.55,0.30],retrieve:[0.90,0.85],summarize:[0.70,0.45],write_tests:[0.50,0.50],review:[0.80,0.70],codegen:[0.40,0.45]};
-const compTokens=(kind,tok)=>{const[c,r]=COMPRESS[kind];return Math.round(tok*(1-c*r));};
-const costOf=(tok,t)=>tok/1e6*t.price;
-const route=req=>{for(const t of TIERS){if(t.cap>=req)return t;}return FRONTIER;};
-function runModel(req,t){const m=t.cap-req;if(m>=-0.001)return{q:Math.min(1,0.86+m*0.25),pass:true};const q=Math.max(0.3,t.cap-0.15);return{q,pass:q>=0.8};}
-const tokset=s=>new Set((s.toLowerCase().match(/\w+/g)||[]));
-function jac(a,b){let i=0;for(const x of a)if(b.has(x))i++;const u=a.size+b.size-i;return u?i/u:0;}
-
-const TICKET=[
- ['classify','Triage ticket JIRA-4821: NPE in PaymentService on null currency'],
- ['retrieve','Fetch code context for PaymentService.processPayment'],
- ['retrieve','Fetch code context for PaymentService.processPayment'],
- ['summarize','Summarize related incidents for PaymentService null currency'],
- ['codegen','Generate null-check fix for PaymentService.processPayment currency field'],
- ['retrieve','Fetch code context for PaymentService.processPayment'],
- ['review','Review proposed fix for side effects in PaymentService'],
- ['write_tests','Write unit tests for null currency handling in PaymentService'],
- ['codegen','Generate null-check fix for PaymentService.processPayment currency field'],
- ['retrieve','Fetch CI config for payments module'],
- ['summarize','Summarize test results for payments module'],
- ['review','Review proposed fix for side effects in PaymentService'],
- ['review','Review PR description for JIRA-4821'],
- ['classify','Classify PR risk level for JIRA-4821'],
- ['summarize','Summarize related incidents for PaymentService null currency'],
- ['codegen','Generate changelog entry for JIRA-4821 fix'],
+// ── Simulation engine (identical to original) ─────────────────────────────
+const TIERS = [
+  {name:'small',    price:0.30, cap:0.70},
+  {name:'mid',      price:3.00, cap:0.88},
+  {name:'frontier', price:15.00,cap:0.97},
 ];
-const LOOP=TICKET.slice(0,5).concat(Array(6).fill(['codegen','Retry: regenerate fix for PaymentService null currency']));
+const FRONTIER = TIERS[2];
+const SPECS = {
+  classify:[0.50,5000], retrieve:[0.55,12000], summarize:[0.60,8000],
+  write_tests:[0.78,20000], review:[0.80,25000], codegen:[0.85,32000],
+};
+const COMPRESS = {
+  classify:[0.55,0.30], retrieve:[0.90,0.85], summarize:[0.70,0.45],
+  write_tests:[0.50,0.50], review:[0.80,0.70], codegen:[0.40,0.45],
+};
+const compTokens = (kind, tok) => { const [c,r] = COMPRESS[kind]; return Math.round(tok*(1-c*r)); };
+const costOf = (tok, t) => tok / 1e6 * t.price;
+const route = req => { for (const t of TIERS) { if (t.cap >= req) return t; } return FRONTIER; };
+function runModel(req, t) {
+  const m = t.cap - req;
+  if (m >= -0.001) return { q: Math.min(1, 0.86 + m*0.25), pass: true };
+  const q = Math.max(0.3, t.cap - 0.15);
+  return { q, pass: q >= 0.8 };
+}
+const tokset = s => new Set((s.toLowerCase().match(/\w+/g) || []));
+function jac(a, b) { let i=0; for (const x of a) if (b.has(x)) i++; const u=a.size+b.size-i; return u?i/u:0; }
 
-function execute(steps,{router,cache,gov,comp}){
-  const exact={},entries=[];let hits=0,looks=0;
-  const seen={};let used=0,killed=null;
-  const out=[];
-  for(let i=0;i<steps.length;i++){
-    const [kind,prompt]=steps[i];const [req,tok]=SPECS[kind];
-    const foot=comp?compTokens(kind,tok):tok;
-    if(gov){const sig=kind+'|'+prompt;seen[sig]=(seen[sig]||0)+1;
-      if(seen[sig]>3){killed='loop detected on '+kind+' (>3× identical)';out.push({n:i+1,kind,decision:'kill',tokens:0,raw:0,cost:0,q:0,killed:true,reason:killed});break;}
+const TICKET = [
+  ['classify',    'Triage ticket JIRA-4821: NPE in PaymentService on null currency'],
+  ['retrieve',    'Fetch code context for PaymentService.processPayment'],
+  ['retrieve',    'Fetch code context for PaymentService.processPayment'],
+  ['summarize',   'Summarize related incidents for PaymentService null currency'],
+  ['codegen',     'Generate null-check fix for PaymentService.processPayment currency field'],
+  ['retrieve',    'Fetch code context for PaymentService.processPayment'],
+  ['review',      'Review proposed fix for side effects in PaymentService'],
+  ['write_tests', 'Write unit tests for null currency handling in PaymentService'],
+  ['codegen',     'Generate null-check fix for PaymentService.processPayment currency field'],
+  ['retrieve',    'Fetch CI config for payments module'],
+  ['summarize',   'Summarize test results for payments module'],
+  ['review',      'Review proposed fix for side effects in PaymentService'],
+  ['review',      'Review PR description for JIRA-4821'],
+  ['classify',    'Classify PR risk level for JIRA-4821'],
+  ['summarize',   'Summarize related incidents for PaymentService null currency'],
+  ['codegen',     'Generate changelog entry for JIRA-4821 fix'],
+];
+const LOOP = TICKET.slice(0,5).concat(Array(6).fill(['codegen','Retry: regenerate fix for PaymentService null currency']));
+
+function execute(steps, {router, cache, gov, comp}) {
+  const exact = {}, entries = []; let hits=0, looks=0;
+  const seen = {}; let used=0, killed=null;
+  const out = [];
+  for (let i=0; i<steps.length; i++) {
+    const [kind, prompt] = steps[i];
+    const [req, tok] = SPECS[kind];
+    const foot = comp ? compTokens(kind, tok) : tok;
+    if (gov) {
+      const sig = kind+'|'+prompt;
+      seen[sig] = (seen[sig]||0) + 1;
+      if (seen[sig] > 3) {
+        killed = 'loop detected on '+kind+' (>3× identical)';
+        out.push({n:i+1,kind,decision:'kill',tokens:0,raw:0,cost:0,q:0,killed:true,reason:killed});
+        break;
+      }
     }
-    if(cache){looks++;const key=kind+'|'+prompt;let hit=null;
-      if(exact[key]!=null)hit=exact[key];
-      else{const ts=tokset(prompt);for(const e of entries){if(e.kind!==kind)continue;if(jac(ts,e.ts)>=0.85){hit=e.v;break;}}}
-      if(hit!=null){hits++;out.push({n:i+1,kind,decision:'cache',tokens:0,raw:0,cost:0,q:hit,cached:true});continue;}
+    if (cache) {
+      looks++;
+      const key = kind+'|'+prompt; let hit=null;
+      if (exact[key] != null) hit = exact[key];
+      else { const ts=tokset(prompt); for (const e of entries) { if (e.kind!==kind) continue; if (jac(ts,e.ts)>=0.85){hit=e.v;break;} } }
+      if (hit != null) { hits++; out.push({n:i+1,kind,decision:'cache',tokens:0,raw:0,cost:0,q:hit,cached:true}); continue; }
     }
-    if(gov){
-      if(used+foot>800000){killed='per-run token budget exceeded';out.push({n:i+1,kind,decision:'kill',tokens:0,raw:0,cost:0,q:0,killed:true,reason:killed});break;}
+    if (gov) {
+      if (used+foot > 800000) {
+        killed = 'per-run token budget exceeded';
+        out.push({n:i+1,kind,decision:'kill',tokens:0,raw:0,cost:0,q:0,killed:true,reason:killed});
+        break;
+      }
     }
-    let t=router?route(req):FRONTIER;let r=runModel(req,t);let tokens=foot,esc=false;
-    if(router&&!r.pass){const idx=TIERS.indexOf(t);if(idx<2){t=TIERS[idx+1];r=runModel(req,t);tokens+=foot;esc=true;}}
-    if(gov)used+=tokens;
-    if(cache){exact[kind+'|'+prompt]=r.q;entries.push({kind,ts:tokset(prompt),v:r.q});}
+    let t = router ? route(req) : FRONTIER;
+    let r = runModel(req, t);
+    let tokens=foot, esc=false;
+    if (router && !r.pass) {
+      const idx = TIERS.indexOf(t);
+      if (idx < 2) { t=TIERS[idx+1]; r=runModel(req,t); tokens+=foot; esc=true; }
+    }
+    if (gov) used += tokens;
+    if (cache) { exact[kind+'|'+prompt]=r.q; entries.push({kind,ts:tokset(prompt),v:r.q}); }
     out.push({n:i+1,kind,decision:t.name,tokens,raw:tok*(esc?2:1),cost:costOf(tokens,t),q:r.q,escalated:esc,compressed:comp});
   }
-  return {out,hits,looks,killed};
-}
-function summarize(res){
-  const ex=res.out.filter(r=>!r.killed&&r.decision!=='cache');
-  const tokens=ex.reduce((a,r)=>a+r.tokens,0);
-  const raw=ex.reduce((a,r)=>a+(r.raw||r.tokens),0);
-  const cost=ex.reduce((a,r)=>a+r.cost,0);
-  const qs=ex.map(r=>r.q);const Q=qs.length?qs.reduce((a,b)=>a+b,0)/qs.length:0;
-  const fc=ex.reduce((a,r)=>a+costOf(r.tokens,FRONTIER),0);
-  const routeSav=fc?1-cost/fc:0;
-  const hit=res.looks?res.hits/res.looks:0;
-  const compSav=raw?1-tokens/raw:0;
-  return {tokens,raw,compSav,cost,Q,routeSav,hit,cpo:Q?cost/Q:0,killed:res.killed};
+  return {out, hits, looks, killed};
 }
 
-const $=id=>document.getElementById(id);
-const fmt=n=>n.toLocaleString('en-US');
-const usd=n=>'$'+n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
-let lastCur=null,running=false;
-
-function badge(d){const m={small:'b-small',mid:'b-mid',frontier:'b-frontier',cache:'b-cache',kill:'b-kill'};
-  const label=d==='cache'?'CACHE HIT':d==='kill'?'KILLED':d;
-  return `<span class="badge ${m[d]||'b-mid'}">${label}</span>`;}
-
-function paintMetrics(s,naive){
-  $('m-tok').textContent=fmt(s.tokens);
-  $('m-tok-d').textContent='naive '+fmt(naive.tokens);
-  $('m-cache').textContent=Math.round(s.hit*100)+'%';
-  $('m-route').textContent=Math.round(s.routeSav*100)+'%';
-  $('m-q').textContent=s.Q.toFixed(2);
-  $('m-qbar').style.width=Math.round(s.Q*100)+'%';
-  $('m-cost').textContent=usd(s.cost);
-  $('m-cost-d').textContent='naive '+usd(naive.cost);
-  $('m-comp').textContent=Math.round(s.compSav*100)+'%';
-  $('h-naive').textContent=usd(naive.cpo);
-  $('h-cur').textContent=s.killed?'killed':usd(s.cpo);
-  const cut=naive.cpo?Math.round((1-s.cpo/naive.cpo)*100):0;
-  $('h-cut').textContent=(cut>0?'−':'')+Math.abs(cut)+'%';
-  lastCur=s;updateFleet();
+function summarize(res) {
+  const ex = res.out.filter(r => !r.killed && r.decision !== 'cache');
+  const tokens = ex.reduce((a,r)=>a+r.tokens, 0);
+  const raw    = ex.reduce((a,r)=>a+(r.raw||r.tokens), 0);
+  const cost   = ex.reduce((a,r)=>a+r.cost, 0);
+  const qs = ex.map(r=>r.q); const Q = qs.length ? qs.reduce((a,b)=>a+b,0)/qs.length : 0;
+  const fc = ex.reduce((a,r)=>a+costOf(r.tokens,FRONTIER), 0);
+  const routeSav = fc ? 1-cost/fc : 0;
+  const hit = res.looks ? res.hits/res.looks : 0;
+  const compSav = raw ? 1-tokens/raw : 0;
+  return {tokens, raw, compSav, cost, Q, routeSav, hit, cpo: Q?cost/Q:0, killed: res.killed};
 }
-function updateFleet(){
-  const naive=execute(TICKET,{router:false,cache:false,gov:false});
-  const nb=summarize(naive);
-  const runs=+$('fleet-range').value;
-  $('fleet-val').textContent=fmt(runs);
-  $('fleet-gross').textContent=usd(nb.cpo*runs*365).replace('.00','');
-  if(!lastCur){$('fleet-annual').textContent='—';return;}
-  const perRun=Math.max(0,nb.cpo-lastCur.cpo);
-  $('fleet-annual').textContent=usd(perRun*runs*365).replace('.00','');
-}
-function opts(){return {router:$('t-router').checked,cache:$('t-cache').checked,gov:$('t-gov').checked,comp:$('t-comp').checked};}
-function modeTag(){const o=opts();const on=['router'].filter(k=>o[k]).length;
-  return (o.router||o.cache||o.gov)?'· control plane active':'· naive baseline';}
 
-async function runWorkflow(steps){
-  if(running)return;running=true;
-  document.querySelectorAll('button.run').forEach(b=>b.disabled=true);
-  $('mode-tag').textContent=modeTag();
-  const stream=$('stream');stream.innerHTML='';
-  const res=execute(steps,opts());
-  const naive=summarize(execute(TICKET,{router:false,cache:false,gov:false}));
-  for(const r of res.out){
-    const div=document.createElement('div');
-    div.className='row'+(r.killed?' killed':'');
-    const extra=r.escalated?' <span class="badge b-esc">ESCALATED</span>':'';
-    div.innerHTML=`<span class="n">${r.n}</span><span class="kind">${r.kind}</span>`+
-      `<span>${badge(r.decision)}${extra}${r.killed?' <span style="color:var(--red)">'+r.reason+'</span>':''}</span>`+
-      `<span class="tok">${r.tokens?((r.compressed?'<span style="color:#b3aaff">⊟</span> ':'')+fmt(r.tokens)):'—'}</span>`+
-      `<span class="cost">${r.cost?usd(r.cost):'—'}</span>`;
-    stream.appendChild(div);stream.scrollTop=stream.scrollHeight;
-    await new Promise(r=>setTimeout(r,140));
+// ── DOM helpers ───────────────────────────────────────────────────────────
+const $ = id => document.getElementById(id);
+const fmt = n => n.toLocaleString('en-US');
+const usd = n => '$' + n.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+let lastCur = null, running = false;
+
+// Date
+$('hdr-date').textContent = new Date().toLocaleDateString('en-US', {day:'2-digit', month:'short', year:'numeric'});
+
+// Badges
+function badge(d, esc, comp) {
+  const map = {small:'b-small', mid:'b-mid', frontier:'b-frontier', cache:'b-cache', kill:'b-kill'};
+  const lbl = d==='cache'?'CACHE HIT': d==='kill'?'KILLED': d.toUpperCase();
+  let s = `<span class="badge ${map[d]||'b-mid'}">${lbl}</span>`;
+  if (esc)  s += ` <span class="badge b-esc">ESCALATED</span>`;
+  if (comp && d!=='cache' && d!=='kill') s += ` <span title="payload compressed" style="color:#a78bfa;font-size:11px;font-family:var(--mono);cursor:default">⊟</span>`;
+  return s;
+}
+
+// Mode pill
+function updateModePill() {
+  const pill=$('mode-pill'), txt=$('mode-txt');
+  const on  = TOGGLES.every(id => $(id).checked);
+  const off = TOGGLES.every(id => !$(id).checked);
+  if      (on)  { pill.className='mode-pill active';  txt.textContent='Control plane active'; }
+  else if (off) { pill.className='mode-pill naive';   txt.textContent='Naive baseline'; }
+  else          { pill.className='mode-pill partial'; txt.textContent='Partial features'; }
+}
+
+// Donut chart (SVG, stroke-dasharray segments)
+function drawDonut(costByTier, totalCost) {
+  const g = $('donut-arcs');
+  g.innerHTML = '';
+  const r=62, cx=80, cy=80, circ=2*Math.PI*r;
+  const tiers = [
+    {name:'frontier', color:'#2563eb'},
+    {name:'mid',      color:'#f59e0b'},
+    {name:'small',    color:'#10b981'},
+  ];
+  const entries = tiers.map(t=>({...t, cost:costByTier[t.name]||0})).filter(e=>e.cost>0);
+  if (!entries.length) {
+    $('donut-total').textContent='—'; $('donut-label').textContent='total';
+    ['frontier','mid','small'].forEach(t=>{$('lv-'+t).textContent='—';$('lp-'+t).textContent='—';});
+    return;
   }
-  paintMetrics(summarize(res),naive);
-  running=false;document.querySelectorAll('button.run').forEach(b=>b.disabled=false);
+  const tip = $('donut-tip');
+  const totalTxt = $('donut-total'), labelTxt = $('donut-label');
+  let acc = 0;
+  const GAP = 2; // px gap between segments
+  for (const e of entries) {
+    const pct = Math.round(e.cost/totalCost*100);
+    const dash = Math.max(0, (e.cost/totalCost)*circ - GAP);
+    const c = document.createElementNS('http://www.w3.org/2000/svg','circle');
+    c.setAttribute('cx',  cx); c.setAttribute('cy', cy); c.setAttribute('r', r);
+    c.setAttribute('fill','none'); c.setAttribute('stroke', e.color); c.setAttribute('stroke-width','26');
+    c.setAttribute('stroke-dasharray', `${dash} ${circ-dash}`);
+    c.setAttribute('stroke-dashoffset', -acc);
+    c.style.cursor = 'pointer';
+    c.style.transition = 'stroke-width .15s';
+    c.addEventListener('mousemove', ev => {
+      tip.style.display = 'block';
+      tip.style.left = (ev.clientX + 12) + 'px';
+      tip.style.top  = (ev.clientY - 32) + 'px';
+      tip.innerHTML  = `<strong style="color:${e.color}">${e.name.charAt(0).toUpperCase()+e.name.slice(1)}</strong><br>${usd(e.cost)} &nbsp;·&nbsp; ${pct}%`;
+      c.setAttribute('stroke-width','30');
+      totalTxt.textContent = usd(e.cost);
+      labelTxt.textContent = e.name + ' · ' + pct + '%';
+    });
+    c.addEventListener('mouseleave', () => {
+      tip.style.display = 'none';
+      c.setAttribute('stroke-width','26');
+      totalTxt.textContent = usd(totalCost);
+      labelTxt.textContent = 'total cost';
+    });
+    g.appendChild(c);
+    acc += (e.cost/totalCost)*circ;
+  }
+  $('donut-total').textContent = usd(totalCost);
+  $('donut-label').textContent = 'total cost';
+  ['frontier','mid','small'].forEach(t => {
+    const c = costByTier[t]||0, pct = totalCost ? Math.round(c/totalCost*100) : 0;
+    $('lv-'+t).textContent = usd(c);
+    $('lp-'+t).textContent = pct+'%';
+  });
 }
 
-$('run-ticket').onclick=()=>runWorkflow(TICKET);
-$('run-loop').onclick=()=>runWorkflow(LOOP);
-$('reset').onclick=()=>{$('stream').innerHTML='<div class="empty">Press “Run agent” to watch calls flow through the control plane.</div>';
-  ['m-tok','m-cache','m-route','m-q','m-cost','m-comp'].forEach(id=>$(id).textContent='—');
-  $('m-tok-d').textContent='';$('m-cost-d').textContent='';$('m-qbar').style.width='0%';
-  $('h-naive').textContent='—';$('h-cur').textContent='—';$('h-cut').textContent='—';
-  $('mode-tag').textContent='';lastCur=null;$('fleet-annual').textContent='—';updateFleet();};
-const TOGGLES=['t-router','t-cache','t-gov','t-comp'];
-function syncMaster(){
-  const on=TOGGLES.map(id=>$(id).checked);
-  const m=$('t-master'),lbl=$('master-label');
-  if(on.every(Boolean)){m.checked=true;m.indeterminate=false;lbl.textContent='Control plane active';lbl.style.color='var(--green)';}
-  else if(on.every(v=>!v)){m.checked=false;m.indeterminate=false;lbl.textContent='Naive baseline';lbl.style.color='var(--muted)';}
-  else{m.indeterminate=true;lbl.textContent='Partial features';lbl.style.color='var(--amber)';}
+// Lever stack
+const LEVER_CONFIGS = [
+  {label:'Naive (frontier only)',   opts:{router:false,cache:false,gov:false,comp:false}, color:'#e5e7eb'},
+  {label:'+ Semantic cache',        opts:{router:false,cache:true, gov:false,comp:false}, color:'#06b6d4'},
+  {label:'+ Model routing',         opts:{router:true, cache:true, gov:false,comp:false}, color:'#2563eb'},
+  {label:'+ Payload compression',   opts:{router:true, cache:true, gov:false,comp:true},  color:'#10b981'},
+];
+function drawLevers() {
+  const costs = LEVER_CONFIGS.map(lc => summarize(execute(TICKET, lc.opts)).cost);
+  const base  = costs[0] || 1;
+  $('lever-stack').innerHTML = LEVER_CONFIGS.map((lc, i) => {
+    const pct = Math.round(costs[i]/base*100);
+    const cut = i===0 ? '' : `<span style="color:var(--green);font-weight:600">−${Math.round((1-costs[i]/base)*100)}%</span>`;
+    return `<div class="lever-row">
+      <div class="lever-top">
+        <span style="color:var(--txt2)">${lc.label}</span>${cut}
+      </div>
+      <div class="lever-bar-bg"><div class="lever-bar-fill" style="width:${pct}%;background:${lc.color}"></div></div>
+      <div class="lever-cost">${usd(costs[i])}</div>
+    </div>`;
+  }).join('');
 }
-$('t-master').onchange=()=>{
-  const on=$('t-master').checked;
-  TOGGLES.forEach(id=>{$(id).checked=on;});
+
+function paintMetrics(s, naive, res) {
+  $('m-tok').textContent   = fmt(s.tokens);
+  $('m-tok-d').textContent = 'naive: ' + fmt(naive.tokens);
+  $('m-cache').textContent = Math.round(s.hit*100)+'%';
+  $('m-route').textContent = Math.round(s.routeSav*100)+'%';
+  $('m-q').textContent     = s.Q.toFixed(2);
+  $('m-qbar').style.width  = Math.round(s.Q*100)+'%';
+  $('m-cost').textContent  = usd(s.cost);
+  $('m-cost-d').textContent= 'naive: '+usd(naive.cost);
+  $('m-comp').textContent  = Math.round(s.compSav*100)+'%';
+  $('h-naive').textContent = usd(naive.cpo);
+  $('h-cur').textContent   = s.killed ? 'killed' : usd(s.cpo);
+  const cut = naive.cpo && !s.killed ? Math.round((1-s.cpo/naive.cpo)*100) : 0;
+  $('h-cut').textContent   = (cut>0?'−':'')+Math.abs(cut)+'%';
+  $('h-cut').style.color   = cut>0 ? 'var(--green)' : 'var(--red)';
+
+  // Donut
+  const costByTier = {};
+  let total = 0;
+  for (const r of res.out) {
+    if (!r.killed && r.decision !== 'cache') {
+      costByTier[r.decision] = (costByTier[r.decision]||0) + r.cost;
+      total += r.cost;
+    }
+  }
+  $('donut-sub-date').textContent = new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+  drawDonut(costByTier, total);
+  drawLevers();
+  lastCur = s;
+  updateFleet();
+}
+
+function updateFleet() {
+  const naive = execute(TICKET, {router:false,cache:false,gov:false,comp:false});
+  const nb = summarize(naive);
+  const runs = +$('fleet-range').value;
+  $('fleet-val').textContent   = fmt(runs);
+  $('fleet-gross').textContent = usd(nb.cpo*runs*365).replace('.00','');
+  if (!lastCur) { $('fleet-annual').textContent='—'; return; }
+  const perRun = Math.max(0, nb.cpo - lastCur.cpo);
+  $('fleet-annual').textContent = usd(perRun*runs*365).replace('.00','');
+}
+
+function opts() {
+  return {router:$('t-router').checked, cache:$('t-cache').checked, gov:$('t-gov').checked, comp:$('t-comp').checked};
+}
+
+async function runWorkflow(steps) {
+  if (running) return;
+  running = true;
+  document.querySelectorAll('.btn').forEach(b => b.disabled=true);
+  updateModePill();
+  $('stream-empty').style.display  = 'none';
+  $('stream-table').style.display  = 'table';
+  $('stream-body').innerHTML       = '';
+  const res   = execute(steps, opts());
+  const naive = summarize(execute(TICKET, {router:false,cache:false,gov:false,comp:false}));
+  for (const r of res.out) {
+    const tr = document.createElement('tr');
+    if (r.killed) tr.className = 'killed';
+    const killNote = r.killed ? `<span style="font-size:11px;color:var(--red);margin-left:6px">${r.reason}</span>` : '';
+    tr.innerHTML =
+      `<td class="n-cell">${r.n}</td>`+
+      `<td class="kind-cell">${r.kind}</td>`+
+      `<td>${badge(r.decision, r.escalated, r.compressed)}${killNote}</td>`+
+      `<td class="tok">${r.tokens ? fmt(r.tokens) : '—'}</td>`+
+      `<td class="cst">${r.cost   ? usd(r.cost)   : '—'}</td>`;
+    $('stream-body').appendChild(tr);
+    const w = $('stream-wrap'); w.scrollTop = w.scrollHeight;
+    await new Promise(res => setTimeout(res, 140));
+  }
+  paintMetrics(summarize(res), naive, res);
+  running = false;
+  document.querySelectorAll('.btn').forEach(b => b.disabled=false);
+}
+
+function doReset() {
+  $('stream-empty').style.display = '';
+  $('stream-table').style.display = 'none';
+  $('stream-body').innerHTML      = '';
+  ['m-tok','m-cache','m-route','m-q','m-cost','m-comp'].forEach(id => $(id).textContent='—');
+  $('m-tok-d').textContent=''; $('m-cost-d').textContent='';
+  $('m-qbar').style.width='0%';
+  $('h-naive').textContent='—'; $('h-cur').textContent='—'; $('h-cut').textContent='—'; $('h-cut').style.color='';
+  $('donut-arcs').innerHTML=''; $('donut-total').textContent='—'; $('donut-label').textContent='total';
+  ['frontier','mid','small'].forEach(t=>{$('lv-'+t).textContent='—';$('lp-'+t).textContent='—';});
+  $('donut-sub-date').textContent='Run an agent to see cost breakdown';
+  $('lever-stack').innerHTML='<div style="font-size:12px;color:var(--dim)">Run agent to see compounding savings</div>';
+  lastCur=null; updateFleet(); updateModePill();
+}
+
+$('run-ticket').onclick = () => runWorkflow(TICKET);
+$('run-loop').onclick   = () => runWorkflow(LOOP);
+$('reset').onclick      = doReset;
+
+const TOGGLES = ['t-router','t-cache','t-gov','t-comp'];
+function syncMaster() {
+  const on = TOGGLES.map(id => $(id).checked);
+  const m = $('t-master'), lbl = $('master-label');
+  if      (on.every(Boolean))   { m.checked=true;  m.indeterminate=false; lbl.textContent='Control plane active'; lbl.style.color='var(--blue)'; }
+  else if (on.every(v=>!v))     { m.checked=false; m.indeterminate=false; lbl.textContent='Naive baseline';       lbl.style.color='var(--muted)'; }
+  else                          { m.indeterminate=true;                   lbl.textContent='Partial features';     lbl.style.color='var(--amber)'; }
+  updateModePill();
+}
+$('t-master').onchange = () => {
+  const on = $('t-master').checked;
+  TOGGLES.forEach(id => $(id).checked = on);
   syncMaster();
-  if(lastCur&&!running)runWorkflow(document.querySelector('#stream .killed')?LOOP:TICKET);
+  if (lastCur && !running) runWorkflow(TICKET);
 };
-TOGGLES.forEach(id=>$(id).onchange=()=>{syncMaster();if(lastCur&&!running)runWorkflow(document.querySelector('#stream .killed')?LOOP:TICKET);});
-$('fleet-range').oninput=updateFleet;
+TOGGLES.forEach(id => $(id).onchange = () => {
+  syncMaster();
+  if (lastCur && !running) runWorkflow(TICKET);
+});
+$('fleet-range').oninput = updateFleet;
 updateFleet();
+updateModePill();
+
+// ── Tab switching ────────────────────────────────────────────────────────
+const TAB_SECTIONS = {
+  dashboard: ['s-top','s-analysis','s-fleet'],
+  simulator: ['s-top'],
+  fleet:     ['s-fleet'],
+  policies:  ['s-policies'],
+};
+const ALL_SECTIONS = ['s-top','s-analysis','s-fleet','s-policies'];
+let currentTab = 'dashboard';
+
+function switchTab(name) {
+  currentTab = name;
+  // update top tab bar active state
+  document.querySelectorAll('.tab[data-tab]').forEach(t => {
+    t.classList.toggle('active', t.dataset.tab === name);
+  });
+  // update sidebar active state
+  document.querySelectorAll('.sb-item[data-tab]').forEach(el => {
+    el.classList.toggle('active', el.dataset.tab === name);
+  });
+  // show/hide sections
+  ALL_SECTIONS.forEach(id => { const el=$(id); if(el) el.style.display='none'; });
+  (TAB_SECTIONS[name]||[]).forEach(id => { const el=$(id); if(el) el.style.display=''; });
+  // body class for CSS overrides
+  document.body.className = document.body.className
+    .replace(/\btab-\S+/g,'').trim() + ' tab-'+name;
+  // populate policies tables on first visit
+  if (name === 'policies') buildPolicyTables();
+  // populate fleet scenarios on fleet tab
+  if (name === 'fleet') buildFleetScenarios();
+}
+
+function buildPolicyTables() {
+  const tbody = $('policy-task-body');
+  if (!tbody || tbody.children.length) return;
+  const tasks = ['classify','retrieve','summarize','write_tests','review','codegen'];
+  tbody.innerHTML = tasks.map(k => {
+    const [,tok] = SPECS[k];
+    const [ctxFrac, removed] = COMPRESS[k];
+    const comp = compTokens(k, tok);
+    const saved = Math.round((1 - comp/tok)*100);
+    return `<tr>
+      <td class="kind-cell">${k}</td>
+      <td class="tok" style="text-align:right">${fmt(tok)}</td>
+      <td class="tok" style="text-align:right">${Math.round(ctxFrac*100)}%</td>
+      <td class="tok" style="text-align:right">${Math.round(removed*100)}%</td>
+      <td class="tok" style="text-align:right">${fmt(comp)}</td>
+      <td style="text-align:right"><span style="color:var(--green);font-family:var(--mono);font-weight:600">−${saved}%</span></td>
+    </tr>`;
+  }).join('');
+}
+
+function buildFleetScenarios() {
+  const tbody = $('fleet-scenarios-body');
+  if (!tbody || tbody.children.length) return;
+  const naive = summarize(execute(TICKET,{router:false,cache:false,gov:false,comp:false}));
+  const ctrl  = summarize(execute(TICKET,{router:true, cache:true, gov:true, comp:true}));
+  const sizes = [1000, 5000, 10000, 50000, 100000];
+  tbody.innerHTML = sizes.map(runs => {
+    const gross   = naive.cpo * runs * 365;
+    const withCP  = ctrl.cpo  * runs * 365;
+    const savings = gross - withCP;
+    const pct     = Math.round(savings/gross*100);
+    const fmtBig  = n => n >= 1e6
+      ? '$'+(n/1e6).toLocaleString('en-US',{maximumFractionDigits:1})+'M'
+      : usd(n).replace('.00','');
+    return `<tr>
+      <td style="font-family:var(--mono)">${fmt(runs)}</td>
+      <td class="tok" style="text-align:right">${fmtBig(gross)}</td>
+      <td class="cst" style="text-align:right">${fmtBig(withCP)}</td>
+      <td style="text-align:right;font-family:var(--mono);color:var(--green);font-weight:600">${fmtBig(savings)}</td>
+      <td style="text-align:right"><span class="badge b-small">−${pct}%</span></td>
+    </tr>`;
+  }).join('');
+}
+
+document.querySelectorAll('.tab[data-tab]').forEach(t => {
+  t.onclick = () => switchTab(t.dataset.tab);
+});
+// sidebar nav items
+document.querySelectorAll('.sb-item[data-tab]').forEach(el => {
+  el.onclick = () => switchTab(el.dataset.tab);
+});
+// sidebar expand/collapse toggle
+document.querySelector('.sb-logo').onclick = () => {
+  document.querySelector('.sidebar').classList.toggle('open');
+};
+// init body class
+document.body.classList.add('tab-dashboard');
+
+// ── Dark / light mode toggle ──────────────────────────────────────────────
+(function() {
+  const html = document.documentElement;
+  const btn  = $('theme-toggle');
+  const sun  = $('theme-icon-sun');
+  const moon = $('theme-icon-moon');
+  const saved = localStorage.getItem('tiq-theme');
+  if (saved === 'dark') { html.classList.add('dark'); sun.style.display=''; moon.style.display='none'; }
+  btn.onclick = () => {
+    const dark = html.classList.toggle('dark');
+    sun.style.display  = dark ? ''     : 'none';
+    moon.style.display = dark ? 'none' : '';
+    localStorage.setItem('tiq-theme', dark ? 'dark' : 'light');
+  };
+})();
 </script>
+</body>
+</html>

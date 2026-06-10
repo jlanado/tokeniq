@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>TokenIQ — Demo Cue Card</title>
@@ -27,11 +28,30 @@
     border:1px solid var(--line);border-left:3px solid var(--green);border-radius:6px}
   .oneliner b{color:var(--txt)}
 
-  section{margin-bottom:26px}
+  /* ── collapsible section ── */
+  section{margin-bottom:10px;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  .s-head{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:13px 16px;cursor:pointer;user-select:none;
+    background:var(--panel2);
+    transition:background .12s;
+  }
+  .s-head:hover{background:#1e2430}
+  .s-body{padding:16px;border-top:1px solid var(--line)}
+  section.collapsed .s-body{display:none}
+
   h2{font-size:11px;letter-spacing:1.6px;text-transform:uppercase;color:var(--green);
-    margin:0 0 12px;font-weight:700;display:flex;align-items:center;gap:8px}
+    margin:0;font-weight:700;display:flex;align-items:center;gap:8px}
   h2 .num{font-family:var(--mono);color:var(--dim);font-size:11px;
     border:1px solid var(--line);border-radius:4px;padding:1px 6px}
+
+  .chevron{flex-shrink:0;color:var(--dim);transition:transform .2s}
+  section.collapsed .chevron{transform:rotate(-90deg)}
+
+  .tog-btn{font-family:var(--mono);font-size:11px;padding:4px 12px;border-radius:5px;
+    cursor:pointer;background:var(--panel2);color:var(--muted);
+    border:1px solid var(--line);transition:background .12s,color .12s}
+  .tog-btn:hover{background:var(--line);color:var(--txt)}
 
   table{width:100%;border-collapse:collapse;font-size:13px;
     background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:hidden}
@@ -76,12 +96,15 @@
   .caveat ul{margin:8px 0 0;padding-left:18px}
   .caveat li{margin-bottom:6px}
 
-  .footer{margin-top:30px;border-top:1px solid var(--line);padding-top:12px;
+  .footer{margin-top:20px;border-top:1px solid var(--line);padding-top:12px;
     font-family:var(--mono);font-size:11px;color:var(--dim)}
 
   @media print{
     body{background:#fff;color:#111}
     .wrap{max-width:none}
+    section{border:1px solid #ccc}
+    .s-head{background:#f5f5f5}
+    .s-body{display:block !important}
     .oneliner,.card,table,.caveat{break-inside:avoid}
     .logo{color:#111;border-color:#111}
     h2{color:#111}
@@ -102,116 +125,302 @@
     without losing answer quality. <b>It's a control plane, not a compressor.</b>
   </div>
 
+  <div style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:10px">
+    <button class="tog-btn" id="expand-all">Expand all</button>
+    <button class="tog-btn" id="collapse-all">Collapse all</button>
+  </div>
+
   <!-- LEVERS -->
   <section>
-    <h2><span class="num">1</span> The 4 levers (your opening explanation)</h2>
-    <table>
-      <tr><th>Lever</th><th>Plain English</th><th>Concrete example</th></tr>
-      <tr>
-        <td><b>Router</b></td>
-        <td>Picks the cheapest model that can still do the job. Escalates to a stronger model only if quality fails.</td>
-        <td class="mono">"Fix this typo" → $0.30 small model. "Design this system" → $15 frontier model.</td>
-      </tr>
-      <tr>
-        <td><b>Semantic cache</b></td>
-        <td>If the same request (by meaning, not exact text) was already answered, return the saved answer for ~$0.</td>
-        <td class="mono">Two devs ask the same NPE question worded differently → 2nd is a cache hit.</td>
-      </tr>
-      <tr>
-        <td><b>Budget governor</b></td>
-        <td>Enforces spend limits and kills runaway loops. Caps retries, trips a kill switch.</td>
-        <td class="mono">Agent retries the same failing call forever → killed after 3 tries.</td>
-      </tr>
-      <tr>
-        <td><b>Payload compressor</b></td>
-        <td>Shrinks the prompt/context before the call so you pay for fewer input tokens, without losing meaning.</td>
-        <td class="mono">50-page RAG context compressed (Headroom-style) before the model sees it.</td>
-      </tr>
-    </table>
+    <div class="s-head">
+      <h2><span class="num">1</span> The 4 levers (your opening explanation)</h2>
+      <svg class="chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+    <div class="s-body">
+      <table>
+        <tr><th>Lever</th><th>Plain English</th><th>Concrete example</th></tr>
+        <tr>
+          <td><b>Router</b></td>
+          <td>Picks the cheapest model that can still do the job. Escalates to a stronger model only if quality fails.</td>
+          <td class="mono">"Fix this typo" → $0.30 small model. "Design this system" → $15 frontier model.</td>
+        </tr>
+        <tr>
+          <td><b>Semantic cache</b></td>
+          <td>If the same request (by meaning, not exact text) was already answered, return the saved answer for ~$0.</td>
+          <td class="mono">Two devs ask the same NPE question worded differently → 2nd is a cache hit.</td>
+        </tr>
+        <tr>
+          <td><b>Budget governor</b></td>
+          <td>Enforces spend limits and kills runaway loops. Caps retries, trips a kill switch.</td>
+          <td class="mono">Agent retries the same failing call forever → killed after 3 tries.</td>
+        </tr>
+        <tr>
+          <td><b>Payload compressor</b></td>
+          <td>Shrinks the prompt/context before the call so you pay for fewer input tokens, without losing meaning.</td>
+          <td class="mono">50-page RAG context compressed (Headroom-style) before the model sees it.</td>
+        </tr>
+      </table>
+    </div>
   </section>
 
   <!-- BUTTONS -->
   <section>
-    <h2><span class="num">2</span> What each button does</h2>
-    <div class="two">
-      <div class="card ticket">
-        <h3>▶ Run agent — resolve JIRA-4821</h3>
-        <div class="tag">the "good agent" / optimization story</div>
-        <ul>
-          <li>One agent runs a real <b>16-step</b> workflow to fix a bug ticket: triage → fetch code → summarize incidents → generate fix → review → write tests → changelog.</li>
-          <li>Watch each step route to the cheapest model that passes <span class="badge b-small">small</span> <span class="badge b-mid">mid</span> <span class="badge b-frontier">frontier</span>.</li>
-          <li>Repeated calls return <span class="badge b-cache">CACHE HIT</span> for free.</li>
-          <li>If a cheap model can't pass, it bumps up a tier: <span class="badge b-esc">ESCALATED</span>.</li>
-        </ul>
-        <div class="punch">SAY: "Same work, ~93% cheaper, quality basically unchanged."</div>
-      </div>
-
-      <div class="card loop">
-        <h3>⚠ Run buggy agent (retry loop)</h3>
-        <div class="tag">the "bad agent" / governance story</div>
-        <ul>
-          <li>5 normal steps, then the <b>same "regenerate fix" call repeated 6 times</b> — a broken agent stuck in a loop.</li>
-          <li>The governor counts identical calls. On the 4th repeat it fires <span class="badge b-kill">KILLED</span> — "loop detected".</li>
-          <li>The run <b>stops mid-stream</b>. No more tokens burned.</li>
-          <li>Also enforces a separate 800K-token-per-run budget cap.</li>
-        </ul>
-        <div class="punch">SAY: "A runaway agent can't bankrupt you. The kill switch caps the blast radius automatically."</div>
+    <div class="s-head">
+      <h2><span class="num">2</span> What each button does</h2>
+      <svg class="chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+    <div class="s-body">
+      <div class="two">
+        <div class="card ticket">
+          <h3>▶ Run agent — resolve JIRA-4821</h3>
+          <div class="tag">the "good agent" / optimization story</div>
+          <ul>
+            <li>One agent runs a real <b>16-step</b> workflow to fix a bug ticket: triage → fetch code → summarize incidents → generate fix → review → write tests → changelog.</li>
+            <li>Watch each step route to the cheapest model that passes <span class="badge b-small">small</span> <span class="badge b-mid">mid</span> <span class="badge b-frontier">frontier</span>.</li>
+            <li>Repeated calls return <span class="badge b-cache">CACHE HIT</span> for free.</li>
+            <li>If a cheap model can't pass, it bumps up a tier: <span class="badge b-esc">ESCALATED</span>.</li>
+          </ul>
+          <div class="punch">SAY: "Same work, ~93% cheaper, quality basically unchanged."</div>
+        </div>
+        <div class="card loop">
+          <h3>⚠ Run buggy agent (retry loop)</h3>
+          <div class="tag">the "bad agent" / governance story</div>
+          <ul>
+            <li>5 normal steps, then the <b>same "regenerate fix" call repeated 6 times</b> — a broken agent stuck in a loop.</li>
+            <li>The governor counts identical calls. On the 4th repeat it fires <span class="badge b-kill">KILLED</span> — "loop detected".</li>
+            <li>The run <b>stops mid-stream</b>. No more tokens burned.</li>
+            <li>Also enforces a separate 800K-token-per-run budget cap.</li>
+          </ul>
+          <div class="punch">SAY: "A runaway agent can't bankrupt you. The kill switch caps the blast radius automatically."</div>
+        </div>
       </div>
     </div>
   </section>
 
   <!-- READING THE OUTPUT -->
   <section>
-    <h2><span class="num">3</span> How to read the metrics panel</h2>
-    <table class="metrics">
-      <tr><th>Metric</th><th>What it means in plain English</th></tr>
-      <tr><td><b>Tokens</b></td><td>Total tokens this run consumed vs the naive (frontier-only) baseline shown beside it.</td></tr>
-      <tr><td><b>Cache hit rate</b></td><td>Share of calls answered from cache instead of a model. <b>~31% on JIRA-4821</b> (5 of 16 steps were repeats). Roughly 1 in 3 calls cost nothing.</td></tr>
-      <tr><td><b>Routing savings</b></td><td>How much cheaper routing made it vs sending everything to the frontier model.</td></tr>
-      <tr><td><b>Quality (Q)</b></td><td>0-to-1 score of how good the answers are. 1.0 = perfect. <b>0.89 vs 0.93 naive</b> = ~4% drop, i.e. "held."</td></tr>
-      <tr><td><b>Run cost</b></td><td>Dollar cost of this run vs naive.</td></tr>
-      <tr><td><b>Compression</b></td><td>How much the context was shrunk before hitting the model.</td></tr>
-    </table>
+    <div class="s-head">
+      <h2><span class="num">3</span> How to read the metrics panel</h2>
+      <svg class="chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+    <div class="s-body">
+      <table class="metrics">
+        <tr><th>Metric</th><th>What it means in plain English</th></tr>
+        <tr><td><b>Tokens</b></td><td>Total tokens this run consumed vs the naive (frontier-only) baseline shown beside it.</td></tr>
+        <tr><td><b>Cache hit rate</b></td><td>Share of calls answered from cache instead of a model. <b>~31% on JIRA-4821</b> (5 of 16 steps were repeats). Roughly 1 in 3 calls cost nothing.</td></tr>
+        <tr><td><b>Routing savings</b></td><td>How much cheaper routing made it vs sending everything to the frontier model.</td></tr>
+        <tr><td><b>Quality (Q)</b></td><td>0-to-1 score of how good the answers are. 1.0 = perfect. <b>0.89 vs 0.93 naive</b> = ~4% drop, i.e. "held."</td></tr>
+        <tr><td><b>Run cost</b></td><td>Dollar cost of this run vs naive.</td></tr>
+        <tr><td><b>Compression</b></td><td>How much the context was shrunk before hitting the model.</td></tr>
+      </table>
+    </div>
   </section>
 
   <!-- NUMBERS -->
   <section>
-    <h2><span class="num">4</span> The numbers to quote (one ticket)</h2>
-    <div class="two">
-      <table>
-        <tr><th>Metric</th><th>Naive</th><th>Control plane</th><th>Δ</th></tr>
-        <tr><td>Tokens</td><td class="mono">273,000</td><td class="mono">114,430</td><td class="num-big down">−58%</td></tr>
-        <tr><td>Cost</td><td class="mono">$4.09</td><td class="mono">$0.28</td><td class="num-big down">−93%</td></tr>
-        <tr><td>Quality (Q)</td><td class="mono">0.93</td><td class="mono">0.89</td><td class="num-big up">held</td></tr>
-        <tr><td>Cost / ticket</td><td class="mono">$4.38</td><td class="mono">$0.31</td><td class="num-big down">−93%</td></tr>
-      </table>
-      <table>
-        <tr><th>Stage (stacks up)</th><th>Cost</th><th>Cumulative</th></tr>
-        <tr><td>Frontier only</td><td class="mono">$4.09</td><td class="mono">—</td></tr>
-        <tr><td>+ Semantic cache</td><td class="mono">$2.76</td><td class="num-big down">−33%</td></tr>
-        <tr><td>+ Model routing</td><td class="mono">$0.42</td><td class="num-big down">−90%</td></tr>
-        <tr><td>+ Compression</td><td class="mono">$0.28</td><td class="num-big down">−93%</td></tr>
-      </table>
+    <div class="s-head">
+      <h2><span class="num">4</span> The numbers to quote (one ticket)</h2>
+      <svg class="chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
     </div>
-    <div class="oneliner" style="margin-top:16px;border-left-color:var(--cyan)">
-      <b>Fleet slider:</b> drag it to project gross annual cost and estimated savings at enterprise scale (365 days — agents run 24/7).
-      At 50,000 agent runs/day the per-ticket savings multiply fast — that's the "why this matters at scale" moment.
-      Use the <b>master toggle</b> to flip all four levers at once for a clean naive vs control plane comparison.
+    <div class="s-body">
+      <div class="two">
+        <table>
+          <tr><th>Metric</th><th>Naive</th><th>Control plane</th><th>Δ</th></tr>
+          <tr><td>Tokens</td><td class="mono">273,000</td><td class="mono">114,430</td><td class="num-big down">−58%</td></tr>
+          <tr><td>Cost</td><td class="mono">$4.09</td><td class="mono">$0.28</td><td class="num-big down">−93%</td></tr>
+          <tr><td>Quality (Q)</td><td class="mono">0.93</td><td class="mono">0.89</td><td class="num-big up">held</td></tr>
+          <tr><td>Cost / ticket</td><td class="mono">$4.38</td><td class="mono">$0.31</td><td class="num-big down">−93%</td></tr>
+        </table>
+        <table>
+          <tr><th>Stage (stacks up)</th><th>Cost</th><th>Cumulative</th></tr>
+          <tr><td>Frontier only</td><td class="mono">$4.09</td><td class="mono">—</td></tr>
+          <tr><td>+ Semantic cache</td><td class="mono">$2.76</td><td class="num-big down">−33%</td></tr>
+          <tr><td>+ Model routing</td><td class="mono">$0.42</td><td class="num-big down">−90%</td></tr>
+          <tr><td>+ Compression</td><td class="mono">$0.28</td><td class="num-big down">−93%</td></tr>
+        </table>
+      </div>
+      <div class="oneliner" style="margin-top:16px;border-left-color:var(--cyan)">
+        <b>Fleet slider:</b> drag it to project gross annual cost and estimated savings at enterprise scale (365 days — agents run 24/7).
+        At 50,000 agent runs/day the per-ticket savings multiply fast — that's the "why this matters at scale" moment.
+        Use the <b>master toggle</b> to flip all four levers at once for a clean naive vs control plane comparison.
+      </div>
     </div>
   </section>
 
   <!-- CAVEATS -->
   <section>
-    <h2><span class="num">5</span> If someone pushes back (honest caveats)</h2>
-    <div class="caveat">
-      <b>This is a reference architecture / simulator, not production. Say so up front — it builds credibility.</b>
-      <ul>
-        <li><b>Quality (Q) is modeled, not measured.</b> In production you'd back it with real evals — graded tasks, human review, or an LLM judge — before claiming "quality maintained."</li>
-        <li><b>The cache matches near-literal repeats</b> (exact or ≥0.85 token similarity). Real agents reword the same intent, so production needs embedding-based matching (cosine ≥ 0.95).</li>
-        <li><b>The kill thresholds are hardcoded</b> (>3 identical calls, 800K tokens/run) and the buggy agent loops on an identical prompt — the easy case. Real runaways vary slightly, so you'd want fuzzy matching or cost-based circuit breakers.</li>
-        <li><b>The 31% cache rate is specific to this scripted ticket.</b> Workflows with fewer repeats cache less.</li>
-        <li><b>State is in-memory today.</b> Production swaps in Redis + Postgres, real provider calls (LiteLLM/Bedrock/OpenAI/Anthropic), and a learned router policy.</li>
-      </ul>
+    <div class="s-head">
+      <h2><span class="num">5</span> If someone pushes back (honest caveats)</h2>
+      <svg class="chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+    <div class="s-body">
+      <div class="caveat">
+        <b>This is a reference architecture / simulator, not production. Say so up front — it builds credibility.</b>
+        <ul>
+          <li><b>Quality (Q) is modeled, not measured.</b> In production you'd back it with real evals — graded tasks, human review, or an LLM judge — before claiming "quality maintained."</li>
+          <li><b>The cache matches near-literal repeats</b> (exact or ≥0.85 token similarity). Real agents reword the same intent, so production needs embedding-based matching (cosine ≥ 0.95).</li>
+          <li><b>The kill thresholds are hardcoded</b> (>3 identical calls, 800K tokens/run) and the buggy agent loops on an identical prompt — the easy case. Real runaways vary slightly, so you'd want fuzzy matching or cost-based circuit breakers.</li>
+          <li><b>The 31% cache rate is specific to this scripted ticket.</b> Workflows with fewer repeats cache less.</li>
+          <li><b>State is in-memory today.</b> Production swaps in Redis + Postgres, real provider calls (LiteLLM/Bedrock/OpenAI/Anthropic), and a learned router policy.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- FINALLY -->
+  <section>
+    <div class="s-head">
+      <h2><span class="num">6</span> Finally — if they ask what it really is</h2>
+      <svg class="chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+    <div class="s-body">
+      <div class="oneliner" style="border-left-color:var(--cyan);font-size:14px;line-height:1.7">
+        "At its core, TokenIQ is an <b>intelligent proxy</b>. Your app points at it instead of pointing at OpenAI.
+        The proxy decides: serve from cache, route to cheaper model, compress the prompt, or kill the call.
+        <b>Your app code doesn't change.</b>"
+      </div>
+      <table style="margin-top:14px">
+        <tr><th>If they say…</th><th>What to say</th></tr>
+        <tr>
+          <td><b>"So it's just a proxy?"</b></td>
+          <td>"A basic proxy just forwards traffic. This one makes decisions — cache, route, compress, kill. Same pattern as Envoy or Istio, except instead of handling retries and TLS, it's handling model routing and cost governance."</td>
+        </tr>
+        <tr>
+          <td><b>"Does my app need to change?"</b></td>
+          <td>"No. You point your OpenAI SDK at TokenIQ's endpoint instead of api.openai.com. Same request shape, same response back. One config line change."</td>
+        </tr>
+        <tr>
+          <td><b>"Why is that credible?"</b></td>
+          <td>"Because proxies are a solved problem at scale. Engineers immediately understand and trust the pattern — it's how every service mesh, API gateway, and CDN works. We're applying it to AI spend."</td>
+        </tr>
+      </table>
+    </div>
+  </section>
+
+  <!-- INTELLIGENT ROUTING -->
+  <section>
+    <div class="s-head">
+      <h2><span class="num">7</span> The roadmap — intelligent routing</h2>
+      <svg class="chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+    <div class="s-body">
+
+      <div class="oneliner" style="border-left-color:var(--violet)">
+        <b>The pitch:</b> "Today we route by rules. The next version routes by evidence —
+        every call teaches the router which model to pick next time."
+      </div>
+
+      <div class="two" style="margin-top:14px;margin-bottom:14px">
+        <div class="card" style="border-top:3px solid var(--dim)">
+          <h3>Today — rules-based</h3>
+          <div class="tag">static, hardcoded, no feedback</div>
+          <ul>
+            <li>Task type maps to a fixed model tier.</li>
+            <li><span class="mono">codegen</span> always → frontier. <span class="mono">classify</span> always → small.</li>
+            <li>Doesn't know about latency, live cost, or real quality.</li>
+            <li>Can't learn. Same decision on day 1 as day 365.</li>
+          </ul>
+        </div>
+        <div class="card" style="border-top:3px solid var(--violet)">
+          <h3>Next — data-driven</h3>
+          <div class="tag">learns from every call, multi-provider</div>
+          <ul>
+            <li>Routes based on <b>historical performance</b> per model per task type.</li>
+            <li>Knows live cost, latency, and measured quality — not estimates.</li>
+            <li>Multi-provider: OpenAI vs Anthropic vs Gemini vs Mistral.</li>
+            <li>Every call is feedback. Router improves over time.</li>
+          </ul>
+        </div>
+      </div>
+
+      <table>
+        <tr><th></th><th>Today (rules)</th><th>Next (intelligent)</th></tr>
+        <tr><td><b>Decides based on</b></td><td>Task type label</td><td>Historical performance data</td></tr>
+        <tr><td><b>Knows live cost?</b></td><td>Fixed price table</td><td>Yes — per provider, real-time</td></tr>
+        <tr><td><b>Knows quality?</b></td><td>Modelled estimate</td><td>Measured from real evals</td></tr>
+        <tr><td><b>Knows latency?</b></td><td>No</td><td>Yes — avoids degraded models</td></tr>
+        <tr><td><b>Multi-provider?</b></td><td>No</td><td>Yes</td></tr>
+        <tr><td><b>Learns over time?</b></td><td>No</td><td>Yes — feedback loop</td></tr>
+      </table>
+
+      <div class="oneliner" style="margin-top:14px;border-left-color:var(--green);font-family:var(--sans);font-size:13px">
+        <b>Why observability comes first:</b> Before you can route intelligently, you need to know what happened on every previous call.
+        Observability is the training data for the router. Every call needs to emit:
+        task type · model used · tokens · cost · latency · quality score.
+        Once you have enough records, the router queries that history instead of a hardcoded rule.
+      </div>
+
+      <p style="font-size:12.5px;color:var(--muted);margin:14px 0 8px;font-family:var(--mono);letter-spacing:.5px;text-transform:uppercase;font-size:10.5px">Architecture — today vs next</p>
+      <pre style="background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px;font-family:var(--mono);font-size:12px;line-height:1.7;color:var(--txt2);overflow-x:auto">
+ TODAY — rules-based
+ ──────────────────────────────────────────────────
+ Request (task_type: "codegen")
+        │
+        ▼
+   ┌─────────┐
+   │  Router │  if codegen  → frontier
+   │  (rules)│  if review   → mid
+   └────┬────┘  if classify → small
+        │
+        ▼
+   Model call → Response       (no feedback, no learning)
+
+
+ NEXT — data-driven
+ ──────────────────────────────────────────────────
+ Request (task_type, context_len, budget_left)
+        │
+        ▼
+ ┌──────────────────────┐
+ │  Observability layer │  ← captures every request signal
+ └──────────┬───────────┘
+            │
+            ▼
+ ┌──────────────────────┐     ┌────────────────────────────┐
+ │  Routing Policy      │────▶│  Telemetry Store            │
+ │  Engine              │◀────│  model · task · cost ·      │
+ │                      │     │  quality · latency · tokens │
+ │  "best cost/quality  │     └────────────────────────────┘
+ │   for this task now?"│
+ └──────────┬───────────┘
+            │
+     ┌──────┴────────┐
+     ▼               ▼
+ OpenAI          Anthropic      ← pluggable providers
+ GPT-4o          Claude Sonnet
+     │               │
+     └──────┬─────── ┘
+            ▼
+       Response
+            │
+            ▼
+ ┌──────────────────────┐
+ │  Eval / Quality Gate │  ← LLM judge scores the answer
+ └──────────┬───────────┘
+            │
+            └─────────────────▶ back into Telemetry Store
+                                (closes the feedback loop)</pre>
+
+      <p style="font-size:12.5px;color:var(--muted);margin:14px 0 8px;font-family:var(--mono);letter-spacing:.5px;text-transform:uppercase;font-size:10.5px">Minimum viable prototype — 3 steps</p>
+      <table>
+        <tr><th style="width:60px">Step</th><th>What to build</th><th>Why it matters</th></tr>
+        <tr>
+          <td><b>1</b></td>
+          <td><b>Instrument every call.</b> Log task type, model, tokens, cost, latency, quality score to a Postgres table.</td>
+          <td>This is the foundation. Nothing else works without this data. Observability IS the training data.</td>
+        </tr>
+        <tr>
+          <td><b>2</b></td>
+          <td><b>Replace hardcoded rules with a policy table.</b> Router queries the DB: "for codegen tasks, which model has the best cost/quality ratio right now?"</td>
+          <td>Now routing decisions are driven by evidence, not assumptions. Swap providers without touching code.</td>
+        </tr>
+        <tr>
+          <td><b>3</b></td>
+          <td><b>Add an LLM judge.</b> After each response, a cheap eval model scores quality (0–1) and writes it back to the telemetry store.</td>
+          <td>Closes the feedback loop. Router now has real quality signal — not modelled estimates.</td>
+        </tr>
+      </table>
+
     </div>
   </section>
 
@@ -221,3 +430,17 @@
   </div>
 
 </div>
+
+<script>
+  document.querySelectorAll('section .s-head').forEach(head => {
+    head.addEventListener('click', () => {
+      head.closest('section').classList.toggle('collapsed');
+    });
+  });
+
+  document.getElementById('expand-all').onclick = () =>
+    document.querySelectorAll('section').forEach(s => s.classList.remove('collapsed'));
+
+  document.getElementById('collapse-all').onclick = () =>
+    document.querySelectorAll('section').forEach(s => s.classList.add('collapsed'));
+</script>
