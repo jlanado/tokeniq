@@ -70,7 +70,7 @@
   .b-mid{background:rgba(243,178,76,.15);color:var(--amber)}
   .b-frontier{background:rgba(90,169,255,.15);color:var(--blue)}
   .b-cache{background:rgba(52,214,208,.15);color:var(--cyan)}
-  .b-esc{background:rgba(255,157,77,.18);color:var(--orange)}
+  .b-esc{background:rgba(179,170,255,.18);color:var(--violet)}
   .b-kill{background:rgba(255,96,96,.18);color:var(--red)}
 
   .two{display:grid;grid-template-columns:1fr 1fr;gap:16px}
@@ -114,7 +114,7 @@
 <div class="wrap">
 
   <div class="head">
-    <span class="logo">CTRL-PLANE</span>
+    <span class="logo">TOKENIQ</span>
     <h1>Demo Cue Card</h1>
     <span class="sub">— what to say when each button gets pushed</span>
   </div>
@@ -142,7 +142,7 @@
         <tr>
           <td><b>Router</b></td>
           <td>Picks the cheapest model that can still do the job. Escalates to a stronger model only if quality fails.</td>
-          <td class="mono">"Fix this typo" → $0.30 small model. "Design this system" → $15 frontier model.</td>
+          <td class="mono">classify/retrieve/summarize → small ($0.30). write_tests/review/codegen → mid ($3.00). Mid (cap 0.88) satisfies even the codegen bar (0.85) — frontier ($15) is never used in the JIRA-4821 run.</td>
         </tr>
         <tr>
           <td><b>Semantic cache</b></td>
@@ -176,9 +176,10 @@
           <div class="tag">the "good agent" / optimization story</div>
           <ul>
             <li>One agent runs a real <b>16-step</b> workflow to fix a bug ticket: triage → fetch code → summarize incidents → generate fix → review → write tests → changelog.</li>
-            <li>Watch each step route to the cheapest model that passes <span class="badge b-small">small</span> <span class="badge b-mid">mid</span> <span class="badge b-frontier">frontier</span>.</li>
-            <li>Repeated calls return <span class="badge b-cache">CACHE HIT</span> for free.</li>
-            <li>If a cheap model can't pass, it bumps up a tier: <span class="badge b-esc">ESCALATED</span>.</li>
+            <li>Watch each step route to the cheapest model that passes: <span class="badge b-small">small</span> or <span class="badge b-mid">mid</span>. <span class="badge b-frontier">frontier</span> never appears — mid (cap 0.88) already clears the codegen bar (0.85).</li>
+            <li>Repeated calls return <span class="badge b-cache">CACHE HIT</span> for free. 5 of 16 steps hit cache (steps 3, 6, 9, 12, 15).</li>
+            <li>If a model can't pass the quality bar it upgrades one tier automatically: <span class="badge b-esc">ESCALATED</span>.</li>
+            <li>A small purple <span style="color:#a78bfa;font-family:var(--mono);font-size:12px">⊟</span> after the badge means the prompt was compressed before the call — it's an inline marker, not a separate badge.</li>
           </ul>
           <div class="punch">SAY: "Same work, ~93% cheaper, quality basically unchanged."</div>
         </div>
@@ -204,15 +205,46 @@
       <svg class="chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
     </div>
     <div class="s-body">
+
+      <p style="font-size:10.5px;letter-spacing:.7px;text-transform:uppercase;color:var(--dim);font-weight:600;margin:0 0 8px">KPI strip (6 tiles, top right)</p>
       <table class="metrics">
-        <tr><th>Metric</th><th>What it means in plain English</th></tr>
-        <tr><td><b>Tokens</b></td><td>Total tokens this run consumed vs the naive (frontier-only) baseline shown beside it.</td></tr>
-        <tr><td><b>Cache hit rate</b></td><td>Share of calls answered from cache instead of a model. <b>~31% on JIRA-4821</b> (5 of 16 steps were repeats). Roughly 1 in 3 calls cost nothing.</td></tr>
-        <tr><td><b>Routing savings</b></td><td>How much cheaper routing made it vs sending everything to the frontier model.</td></tr>
-        <tr><td><b>Quality (Q)</b></td><td>0-to-1 score of how good the answers are. 1.0 = perfect. <b>0.89 vs 0.93 naive</b> = ~4% drop, i.e. "held."</td></tr>
-        <tr><td><b>Run cost</b></td><td>Dollar cost of this run vs naive.</td></tr>
-        <tr><td><b>Compression</b></td><td>How much the context was shrunk before hitting the model.</td></tr>
+        <tr><th>Tile</th><th>What it means in plain English</th></tr>
+        <tr><td><b>Tokens Used</b></td><td>Compressed tokens billed this run. "naive: N" shown below it is the all-frontier, no-cache baseline for comparison.</td></tr>
+        <tr><td><b>Cache Hit Rate</b></td><td>Share of calls answered from cache. <b>31% on JIRA-4821</b> (5 of 16 steps hit cache). Each hit costs $0.</td></tr>
+        <tr><td><b>Routing Savings</b></td><td>How much cheaper routing made it vs sending everything to the frontier tier. <b>~84% on JIRA-4821</b> — because mid ($3) handles every task that naive sent to frontier ($15).</td></tr>
+        <tr><td><b>Quality Score</b></td><td>0-to-1 modelled score. <b>0.89 vs 0.93 naive</b> — ~4% drop, effectively "held." A blue progress bar fills to the right.</td></tr>
+        <tr><td><b>Run Cost</b></td><td>Dollar cost of this run. "naive: $N" shown below it.</td></tr>
+        <tr><td><b>Compression</b></td><td>How much input context was stripped before the model call. <b>~38% on JIRA-4821</b> — tokens billed vs raw prompt size.</td></tr>
       </table>
+
+      <p style="font-size:10.5px;letter-spacing:.7px;text-transform:uppercase;color:var(--dim);font-weight:600;margin:16px 0 8px">Cost breakdown by model tier (donut chart, bottom left)</p>
+      <table class="metrics">
+        <tr><th>Segment</th><th>What it shows</th></tr>
+        <tr><td><b style="color:#2563eb">■ Frontier</b></td><td>Share of actual cost billed to frontier-tier models. <b>0% after JIRA-4821</b> — mid tier (cap 0.88) satisfies the codegen bar (0.85), so frontier is never called. If you see a big blue slice, the router escalated something all the way up.</td></tr>
+        <tr><td><b style="color:#f59e0b">■ Mid</b></td><td>Typically the dominant segment. On JIRA-4821: ~97% — write_tests, review, and codegen all land here.</td></tr>
+        <tr><td><b style="color:#10b981">■ Small</b></td><td>Cheap tasks: classify and retrieve. ~3% of cost on JIRA-4821 because they're low-token and cheap.</td></tr>
+        <tr><td><b style="color:#06b6d4">■ Cache</b></td><td>Always $0.00 / free — cache hits are billed nothing. Hover any segment for the exact dollar amount and percentage.</td></tr>
+      </table>
+
+      <p style="font-size:10.5px;letter-spacing:.7px;text-transform:uppercase;color:var(--dim);font-weight:600;margin:16px 0 8px">Cost per resolved ticket (hero card, bottom right)</p>
+      <table class="metrics">
+        <tr><th>Element</th><th>What it shows</th></tr>
+        <tr><td><b>Strikethrough → current</b></td><td>Naive cost/ticket (struck through) next to the TokenIQ cost/ticket. On JIRA-4821: <span style="text-decoration:line-through;color:var(--dim)">$4.38</span> → <b>$0.31</b>.</td></tr>
+        <tr><td><b>−XX% in green</b></td><td>The headline saving percentage. <b>−93%</b> for JIRA-4821. Goes red if features are off and cost rises above naive (shouldn't happen).</td></tr>
+        <tr><td><b>Optimization lever stack</b></td><td>Four horizontal bars showing cumulative savings as each lever is added: Naive → +Semantic cache → +Model routing → +Payload compression. Bars animate to the correct width when the run completes.</td></tr>
+      </table>
+
+      <p style="font-size:10.5px;letter-spacing:.7px;text-transform:uppercase;color:var(--dim);font-weight:600;margin:16px 0 8px">Mode pill and toggle behaviour</p>
+      <table class="metrics">
+        <tr><th>State</th><th>What it means</th></tr>
+        <tr><td><b style="color:#16a34a">● Control plane active</b></td><td>All four levers on. This is the optimised baseline.</td></tr>
+        <tr><td><b style="color:#6b7280">● Naive baseline</b></td><td>All levers off. Every call goes to frontier, no cache, no compression. Use this for the "before" comparison.</td></tr>
+        <tr><td><b style="color:#b45309">● Partial features</b></td><td>Mixed state. Useful for showing the contribution of individual levers.</td></tr>
+      </table>
+      <div style="font-size:12.5px;color:var(--muted);margin-top:10px;padding:9px 12px;background:var(--panel);border:1px solid var(--line);border-radius:6px">
+        <b style="color:var(--txt)">Toggle auto-rerun:</b> flipping any individual lever (Router / Semantic Cache / Budget Governor / Payload Compression) while a run has already completed will automatically re-run the JIRA-4821 workflow with the new settings. No need to press the button again. The master toggle flips all four at once.
+      </div>
+
     </div>
   </section>
 
@@ -236,7 +268,7 @@
           <tr><td>Frontier only</td><td class="mono">$4.09</td><td class="mono">—</td></tr>
           <tr><td>+ Semantic cache</td><td class="mono">$2.76</td><td class="num-big down">−33%</td></tr>
           <tr><td>+ Model routing</td><td class="mono">$0.42</td><td class="num-big down">−90%</td></tr>
-          <tr><td>+ Compression</td><td class="mono">$0.28</td><td class="num-big down">−93%</td></tr>
+          <tr><td>+ Payload compression</td><td class="mono">$0.28</td><td class="num-big down">−93%</td></tr>
         </table>
       </div>
       <div class="oneliner" style="margin-top:16px;border-left-color:var(--cyan)">
@@ -316,7 +348,7 @@
           <div class="tag">static, hardcoded, no feedback</div>
           <ul>
             <li>Task type maps to a fixed model tier.</li>
-            <li><span class="mono">codegen</span> always → frontier. <span class="mono">classify</span> always → small.</li>
+            <li><span class="mono">codegen</span> maps to frontier in the rule table. <span class="mono">classify</span> always → small.</li>
             <li>Doesn't know about latency, live cost, or real quality.</li>
             <li>Can't learn. Same decision on day 1 as day 365.</li>
           </ul>
@@ -358,9 +390,10 @@
         │
         ▼
    ┌─────────┐
-   │  Router │  if codegen  → frontier
-   │  (rules)│  if review   → mid
-   └────┬────┘  if classify → small
+   │  Router │  if codegen  → frontier  ← conceptual rule;
+   │  (rules)│  if review   → mid         in the live demo codegen routes to
+   └────┬────┘  if classify → small       mid (mid cap 0.88 ≥ req 0.85), so
+        │                                  frontier is never reached
         │
         ▼
    Model call → Response       (no feedback, no learning)
