@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TokenIQ — Architecture Flow Cue Card</title>
+<style>
+  :root{
+    --bg:#0c0e12; --panel:#13161c; --panel2:#171b22; --line:#262c36;
+    --txt:#e7eaef; --muted:#8b929e; --dim:#5b626d;
+    --green:#37d98a; --amber:#f3b24c; --blue:#5aa9ff; --cyan:#34d6d0;
+    --red:#ff6060; --orange:#ff9d4d; --violet:#b3aaff;
+    --mono:ui-monospace,"SF Mono","JetBrains Mono",Menlo,Consolas,monospace;
+    --sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--txt);font-family:var(--sans);
+    font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1080px;margin:0 auto;padding:26px 22px 60px}
+
+  .head{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;
+    border-bottom:1px solid var(--line);padding-bottom:14px;margin-bottom:6px}
+  .logo{font-family:var(--mono);font-size:11px;letter-spacing:3px;color:var(--green);
+    border:1px solid var(--green);padding:3px 8px;border-radius:4px}
+  h1{font-size:20px;font-weight:600;margin:0;letter-spacing:.2px}
+  .sub{color:var(--muted);font-size:12.5px}
+
+  .oneliner{font-family:var(--mono);font-size:13px;color:var(--muted);
+    margin:14px 0 22px;padding:12px 14px;background:var(--panel2);
+    border:1px solid var(--line);border-left:3px solid var(--green);border-radius:6px}
+  .oneliner b{color:var(--txt)}
+
+  section{margin-bottom:10px;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  .s-head{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:13px 16px;cursor:pointer;user-select:none;
+    background:var(--panel2);transition:background .12s;
+  }
+  .s-head:hover{background:#1e2430}
+  .s-body{padding:16px;border-top:1px solid var(--line)}
+  section.collapsed .s-body{display:none}
+  section.collapsed .s-head{border-bottom:none}
+
+  h2{font-size:11px;letter-spacing:1.6px;text-transform:uppercase;
+    margin:0;font-weight:700;display:flex;align-items:center;gap:8px}
+  h2.overview{color:var(--green)}
+  h2.hotpath{color:var(--blue)}
+  h2.edges{color:var(--cyan)}
+  h2.data{color:var(--amber)}
+  h2.loop{color:var(--violet)}
+  h2.hard{color:var(--red)}
+
+  h2 .num{font-family:var(--mono);color:var(--dim);font-size:11px;
+    border:1px solid var(--line);border-radius:4px;padding:1px 6px}
+  h2 .tab-pill{font-size:10.5px;padding:2px 9px;border-radius:20px;font-family:var(--mono);
+    font-weight:600;letter-spacing:.5px}
+  h2.overview .tab-pill{background:rgba(55,217,138,.15);color:var(--green)}
+  h2.hotpath  .tab-pill{background:rgba(90,169,255,.15);color:var(--blue)}
+  h2.edges    .tab-pill{background:rgba(52,214,208,.15);color:var(--cyan)}
+  h2.data     .tab-pill{background:rgba(243,178,76,.15);color:var(--amber)}
+  h2.loop     .tab-pill{background:rgba(179,170,255,.15);color:var(--violet)}
+  h2.hard     .tab-pill{background:rgba(255,96,96,.15);color:var(--red)}
+
+  .chevron{flex-shrink:0;color:var(--dim);transition:transform .2s}
+  section.collapsed .chevron{transform:rotate(-90deg)}
+
+  table{width:100%;border-collapse:collapse;font-size:13px;
+    background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+  th{text-align:left;font-size:10.5px;letter-spacing:.8px;text-transform:uppercase;
+    color:var(--dim);font-weight:600;padding:9px 12px;background:var(--panel2);
+    border-bottom:1px solid var(--line)}
+  td{padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+  tr:last-child td{border-bottom:0}
+  td b{color:var(--txt)}
+  .say{color:var(--cyan);font-style:italic}
+  .mono{font-family:var(--mono);font-size:12px}
+
+  .badge{font-size:10.5px;padding:2px 8px;border-radius:4px;display:inline-block;
+    font-weight:600;font-family:var(--mono);white-space:nowrap}
+  .b-poc{background:rgba(55,217,138,.15);color:var(--green)}
+  .b-prod{background:rgba(243,178,76,.18);color:var(--amber)}
+  .b-road{background:rgba(255,157,77,.15);color:var(--orange)}
+  .b-stage{background:rgba(90,169,255,.12);color:var(--blue);font-size:11px;
+    border:1px solid rgba(90,169,255,.25)}
+
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:760px){.two{grid-template-columns:1fr}}
+
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px}
+  .card h3{margin:0 0 4px;font-size:14px;font-weight:600}
+  .card .tag{font-family:var(--mono);font-size:11px;color:var(--dim);margin-bottom:10px}
+  .card ul{margin:0;padding-left:16px}
+  .card li{margin-bottom:7px;font-size:13px}
+  .card li b{color:var(--txt)}
+  .card.green{border-top:3px solid var(--green)}
+  .card.blue{border-top:3px solid var(--blue)}
+  .card.cyan{border-top:3px solid var(--cyan)}
+  .card.amber{border-top:3px solid var(--amber)}
+  .card.violet{border-top:3px solid var(--violet)}
+
+  .punch{margin-top:12px;padding:9px 11px;background:var(--panel2);border-radius:6px;
+    font-size:12.5px;color:var(--cyan);font-family:var(--mono)}
+  .punch.green{color:var(--green)}
+  .punch.amber{color:var(--amber)}
+  .punch.violet{color:var(--violet)}
+
+  .flow{display:flex;align-items:center;gap:6px;flex-wrap:wrap;
+    padding:14px;background:var(--panel);border:1px solid var(--line);border-radius:8px;
+    margin-bottom:14px;font-size:13px}
+  .flow-step{display:flex;flex-direction:column;align-items:center;gap:3px;min-width:72px}
+  .flow-num{font-family:var(--mono);font-size:10px;color:var(--dim);
+    background:var(--panel2);border:1px solid var(--line);border-radius:12px;
+    padding:1px 6px;line-height:1.4}
+  .flow-name{font-size:11.5px;font-weight:600;color:var(--txt);text-align:center}
+  .flow-arrow{color:var(--dim);font-size:16px;padding-bottom:12px;flex-shrink:0}
+
+  .stage-num{display:inline-flex;align-items:center;justify-content:center;
+    width:22px;height:22px;border-radius:50%;
+    background:rgba(90,169,255,.15);border:1px solid rgba(90,169,255,.3);
+    font-family:var(--mono);font-size:11px;font-weight:600;color:var(--blue);
+    flex-shrink:0}
+
+  .caveat{background:rgba(243,178,76,.06);border:1px solid rgba(243,178,76,.25);
+    border-radius:8px;padding:13px 15px;font-size:12.5px;margin-top:14px}
+  .caveat b{color:var(--amber)}
+  .caveat ul{margin:6px 0 0;padding-left:18px}
+  .caveat li{margin-bottom:6px}
+
+  .tog-btn{font-family:var(--mono);font-size:11px;padding:4px 12px;border-radius:5px;
+    cursor:pointer;background:var(--panel2);color:var(--muted);
+    border:1px solid var(--line);transition:background .12s,color .12s}
+  .tog-btn:hover{background:var(--line);color:var(--txt)}
+
+  .footer{margin-top:20px;border-top:1px solid var(--line);padding-top:12px;
+    font-family:var(--mono);font-size:11px;color:var(--dim)}
+
+  @media print{
+    body{background:#fff;color:#111}
+    .wrap{max-width:none}
+    section{border:1px solid #ccc}
+    .s-head{background:#f5f5f5}
+    .s-body{display:block !important}
+    .oneliner,.card,table,.caveat,.flow{break-inside:avoid}
+    h2{color:#111 !important}
+    .tab-pill{border:1px solid #999 !important;background:none !important;color:#333 !important}
+  }
+</style>
+
+<div class="wrap">
+
+  <div class="head">
+    <span class="logo">TOKENIQ</span>
+    <h1>Architecture Flow — Cue Card</h1>
+    <span class="sub">— how to explain the diagram, zone by zone, in plain English</span>
+  </div>
+
+  <div style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:10px">
+    <button class="tog-btn" id="expand-all">Expand all</button>
+    <button class="tog-btn" id="collapse-all">Collapse all</button>
+  </div>
+
+  <div class="oneliner">
+    <b>Frame it in one sentence:</b> "Every AI call from your org flows left to right through this diagram.
+    The control plane in the middle is the one place that can <b>see it, tag it, cache it, cap it, route it, compress it, dispatch it, and validate it</b> — before a single dollar is billed to a model provider."
+  </div>
+
+  <!-- ── ZONE 1: BIG PICTURE ─────────────────────────────────────── -->
+  <section>
+    <div class="s-head">
+      <h2 class="overview">
+        <span class="num">1</span>
+        <span class="tab-pill">The Big Picture</span>
+        &nbsp;— five zones, one flow
+      </h2>
+      <svg class="chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+    <div class="s-body">
+
+      <div class="two" style="margin-bottom:14px">
+        <div class="card green">
+          <h3>How to read the diagram</h3>
+          <div class="tag">left → right = the journey of one AI request</div>
+          <ul>
+            <li><b>Left side:</b> Who sends requests — agents, workflows, apps. These are your <em>callers</em>, not TokenIQ components.</li>
+            <li><b>Middle (teal box):</b> The control plane — the 8 stages every request passes through.</li>
+            <li><b>Right side:</b> The model providers that actually answer the call — OpenAI, Anthropic, Bedrock, internal.</li>
+            <li><b>Below middle:</b> The data stores and learning loop that make the system smarter over time.</li>
+          </ul>
+          <div class="punch green">SAY: "Think of the middle box as your org's AI traffic controller. Nothing reaches a model without going through it."</div>
+        </div>
+        <div class="card green">
+          <h3>The five zones at a glance</h3>
+          <div class="tag">what each zone does in plain English</div>
+          <ul>
+            <li><b>① AI Producers</b> — the callers. Coding agents, bots, apps. They just make normal API calls.</li>
+            <li><b>② Control Plane</b> — the 8-stage pipeline. This is TokenIQ's core.</li>
+            <li><b>③ Model Endpoints</b> — the providers. The control plane decides which one gets the call.</li>
+            <li><b>④ State &amp; Telemetry</b> — memory. Redis, vector store, Postgres. Not live yet — production target.</li>
+            <li><b>⑤ Learning Loop</b> — the compounding moat. Gets smarter as usage grows. Roadmap.</li>
+          </ul>
+          <div class="punch green">SAY: "Zones ① and ③ are other people's systems. We own ②, ④, and ⑤."</div>
+        </div>
+      </div>
+
+      <table>
+        <tr><th>Zone</th><th>Plain English</th><th>Status</th><th>What to say</th></tr>
+        <tr>
+          <td><b>① AI Producers</b></td>
+          <td>Your org's agents and apps. They call TokenIQ exactly like they'd call OpenAI — no code changes needed.</td>
+          <td><span class="badge b-poc">Upstream</span></td>
+          <td class="say">"Drop-in replacement. Point your base URL at TokenIQ. Done."</td>
+        </tr>
+        <tr>
+          <td><b>② Control Plane</b></td>
+          <td>The 8 stages that meter, cache, govern, route, compress, dispatch, and validate every call. The whole value prop lives here.</td>
+          <td><span class="badge b-poc">Running PoC</span></td>
+          <td class="say">"This is the product. Everything else is plumbing."</td>
+        </tr>
+        <tr>
+          <td><b>③ Model Endpoints</b></td>
+          <td>OpenAI, Anthropic, AWS Bedrock, internal LLMs. The router picks which one based on task and cost. Called via LiteLLM in production.</td>
+          <td><span class="badge b-prod">PoC / Prod Target</span></td>
+          <td class="say">"Provider-agnostic. Swap one out, nothing upstream changes."</td>
+        </tr>
+        <tr>
+          <td><b>④ State &amp; Telemetry</b></td>
+          <td>Redis holds live counters. Vector store powers semantic cache. Postgres is the cost ledger and audit trail.</td>
+          <td><span class="badge b-prod">Production Target</span></td>
+          <td class="say">"In the PoC this is all in-memory. In production it's Redis + Postgres — stateless gateway, externalised state."</td>
+        </tr>
+        <tr>
+          <td><b>⑤ Learning Loop</b></td>
+          <td>Router Trainer learns the cheapest model that actually passes quality. Outcome Linker ties cost to SDLC events. FinOps gives finance the numbers they care about.</td>
+          <td><span class="badge b-road">Roadmap</span></td>
+          <td class="say">"This is the moat. Rules-based routing today, learned routing tomorrow."</td>
+        </tr>
+      </table>
+
+    </div>
+  </section>
+
+  <!-- ── ZONE 2: THE 8-STAGE HOT PATH ──────────────────────────── -->
+  <section>
+    <div class="s-head">
+      <h2 class="hotpath">
+        <span class="num">2</span>
+        <span class="tab-pill">The 8-Stage Hot Path</span>
+        &nbsp;— what happens to every request
+      </h2>
+      <svg class="chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+    <div class="s-body">
+
+      <div class="flow">
+        <div class="flow-step"><span class="flow-num">①</span><span class="flow-name">Gateway</span></div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-step"><span class="flow-num">②</span><span class="flow-name">Meter + Tag</span></div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-step"><span class="flow-num">③</span><span class="flow-name">Semantic Cache</span></div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-step"><span class="flow-num">④</span><span class="flow-name">Budget Governor</span></div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-step"><span class="flow-num">⑤</span><span class="flow-name">Model Router</span></div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-step"><span class="flow-num">⑥</span><span class="flow-name">Compression Adapter</span></div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-step"><span class="flow-num">⑦</span><span class="flow-name">Model Dispatch</span></div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-step"><span class="flow-num">⑧</span><span class="flow-name">Quality Gate</span></div>
+      </div>
+
+      <table>
+        <tr><th style="width:40px">#</th><th style="width:160px">Stage</th><th>What it does</th><th>Plain English analogy</th><th>What to say</th></tr>
+        <tr>
+          <td><span class="stage-num">1</span></td>
+          <td><b>Gateway</b></td>
+          <td>Receives the request. Accepts the same format as OpenAI's API so callers need zero code changes.</td>
+          <td>The front door. Looks identical to every door the caller has used before.</td>
+          <td class="say">"Callers don't know they're talking to TokenIQ. They just call an API."</td>
+        </tr>
+        <tr>
+          <td><span class="stage-num">2</span></td>
+          <td><b>Meter + Tag</b></td>
+          <td>Stamps the request with <span class="mono">team</span>, <span class="mono">run_id</span>, and <span class="mono">correlation_id</span> so every call can be traced back to a team, a ticket, and a workflow run.</td>
+          <td>The barcode scanner at a warehouse door. Every item gets labelled before it moves anywhere.</td>
+          <td class="say">"This is how you get chargeback. Without the tag, you can't attribute cost to anyone."</td>
+        </tr>
+        <tr>
+          <td><span class="stage-num">3</span></td>
+          <td><b>Semantic Cache</b></td>
+          <td>Checks if this question — or one very close to it — was already answered. Exact match first, then fuzzy/semantic match. If yes: returns the answer instantly, costs zero tokens.</td>
+          <td>Checking your notes before calling the expert again. If you wrote down the answer last time, you don't pay for another call.</td>
+          <td class="say">"About 1 in 3 calls hit the cache in our simulation. Each one is 100% savings — no model, no cost."</td>
+        </tr>
+        <tr>
+          <td><span class="stage-num">4</span></td>
+          <td><b>Budget Governor</b></td>
+          <td>Two checks: <b>(a)</b> Has this exact prompt been sent too many times? (loop detection). <b>(b)</b> Has this run burned through its token budget? If either trips, the call is killed before it reaches a model.</td>
+          <td>A pre-paid card with a fraud detection rule. Spend freely up to the limit; get automatically blocked if you look like you're stuck in a loop.</td>
+          <td class="say">"Agents can get stuck. Without this, a looping agent can burn thousands of dollars overnight. This makes that physically impossible."</td>
+        </tr>
+        <tr>
+          <td><span class="stage-num">5</span></td>
+          <td><b>Model Router</b></td>
+          <td>Looks at the task type and picks the cheapest model tier that's capable enough to do it well. Simple tasks go to small/cheap models. Only complex tasks go to frontier.</td>
+          <td>An expense policy — junior staff fly economy, not business. But if the task genuinely needs business class, it gets it.</td>
+          <td class="say">"Most tasks don't need GPT-4. Classify, retrieve, summarize — cheap models handle these fine. Only codegen needs the big model."</td>
+        </tr>
+        <tr>
+          <td><span class="stage-num">6</span></td>
+          <td><b>Compression Adapter</b></td>
+          <td>Shrinks the prompt before it hits the model — strips redundant context, whitespace, and boilerplate. You're billed for fewer input tokens.</td>
+          <td>Summarising a 10-page brief into 2 pages before sending it to a consultant who charges by the page.</td>
+          <td class="say">"For RAG and code review tasks, up to 70–85% of the input is compressible. We strip it before billing."</td>
+        </tr>
+        <tr>
+          <td><span class="stage-num">7</span></td>
+          <td><b>Model Dispatch</b></td>
+          <td>Sends the compressed request to the selected provider (OpenAI, Anthropic, Bedrock, internal LLM) via LiteLLM. This is the only stage that touches the outside world.</td>
+          <td>The actual phone call to the expert. Everything before this was preparation; this is the one moment money is spent.</td>
+          <td class="say">"In the PoC this is simulated. In production, LiteLLM handles the provider routing — one interface, any model."</td>
+        </tr>
+        <tr>
+          <td><span class="stage-num">8</span></td>
+          <td><b>Quality Gate</b></td>
+          <td>Checks if the model's response meets the quality bar for this task. If it fails, it automatically escalates one tier and retries — without involving a human. If it passes, the response goes back to the caller.</td>
+          <td>A QA check at the end of a production line. Reject the part, send it to the next station for rework. Only ship what passes.</td>
+          <td class="say">"The system self-corrects. A cheap model that fails escalates automatically. The caller gets a good answer either way."</td>
+        </tr>
+      </table>
+
+      <div class="oneliner" style="margin-top:14px;border-left-color:var(--blue)">
+        <b>The fast path shortcut:</b> If stage ③ (cache) gets a hit, the request skips stages ④ through ⑧ entirely.
+        No budget check, no routing, no model call, no billing. Cache hits are the most valuable optimisation on the board.
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ── ZONE 3: EDGES (PRODUCERS + PROVIDERS) ─────────────────── -->
+  <section>
+    <div class="s-head">
+      <h2 class="edges">
+        <span class="num">3</span>
+        <span class="tab-pill">The Two Edges</span>
+        &nbsp;— who sends requests, who answers them
+      </h2>
+      <svg class="chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+    <div class="s-body">
+
+      <div class="two" style="margin-bottom:14px">
+        <div class="card cyan">
+          <h3>① Left edge — AI Producers</h3>
+          <div class="tag">who sends the calls</div>
+          <ul>
+            <li><b>Coding Agents</b> (Claude Code, Cursor, Codex) — automated engineers opening PRs, writing tests, generating changelogs.</li>
+            <li><b>Agentic Workflows</b> (LangGraph, internal) — multi-step orchestration pipelines. One "job" can be dozens of LLM calls.</li>
+            <li><b>RAG / Copilots</b> — knowledge retrieval bots, Q&amp;A assistants. High volume, mostly cheap tasks.</li>
+            <li><b>Enterprise Apps</b> (ServiceNow, Teams, internal portals) — humans triggering AI via forms and bots.</li>
+          </ul>
+          <div class="punch">SAY: "These are your org's callers. They all point at one URL — TokenIQ. That's the whole integration."</div>
+        </div>
+        <div class="card cyan">
+          <h3>③ Right edge — Model Endpoints</h3>
+          <div class="tag">who answers the calls</div>
+          <ul>
+            <li><b>OpenAI</b> — GPT-4o, o1, etc. The default frontier option for most teams today.</li>
+            <li><b>Anthropic</b> — Claude models. Strong on reasoning and long-context tasks.</li>
+            <li><b>AWS Bedrock</b> — managed multi-model API. Preferred when data must stay in AWS tenancy.</li>
+            <li><b>Internal LLMs</b> — private fine-tuned models. Used for sensitive data that can't leave the network.</li>
+          </ul>
+          <div class="punch">SAY: "The router picks the provider. Callers never know which one answered — and they don't need to."</div>
+        </div>
+      </div>
+
+      <table>
+        <tr><th>Caller type</th><th>Typical task mix</th><th>Why it matters</th></tr>
+        <tr>
+          <td><b>Coding agents</b></td>
+          <td>Lots of codegen (frontier), some review (mid), lots of classify/retrieve (small)</td>
+          <td>High token volume. Cache hit rate is lower — code prompts are more unique than Q&amp;A.</td>
+        </tr>
+        <tr>
+          <td><b>Agentic workflows</b></td>
+          <td>Mixed — depends on the workflow. Often heavy on summarize and retrieve.</td>
+          <td>Loop risk is highest here. One bad agent config can spin forever. Governor is critical.</td>
+        </tr>
+        <tr>
+          <td><b>RAG / Copilots</b></td>
+          <td>Mostly retrieve and summarize — low-capability tasks</td>
+          <td>Cache hit rate is highest here. Same questions get asked repeatedly. Biggest cache savings.</td>
+        </tr>
+        <tr>
+          <td><b>Enterprise apps</b></td>
+          <td>Classify, retrieve, summarize — human-triggered, lower frequency</td>
+          <td>Easiest to budget and attribute. Team and correlation IDs map directly to business units.</td>
+        </tr>
+      </table>
+
+    </div>
+  </section>
+
+  <!-- ── ZONE 4: DATA LAYER ────────────────────────────────────── -->
+  <section>
+    <div class="s-head">
+      <h2 class="data">
+        <span class="num">4</span>
+        <span class="tab-pill">Production State &amp; Telemetry</span>
+        &nbsp;— what the three stores do
+      </h2>
+      <svg class="chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+    <div class="s-body">
+
+      <div class="oneliner" style="margin-bottom:14px;border-left-color:var(--amber)">
+        <b>Important context:</b> In the PoC today, all three stores are <b>replaced by in-memory dicts</b>.
+        The control plane logic is identical — the stores are just where the state lives in production.
+        Swapping in Redis + Postgres requires no changes to the gateway or control plane code.
+      </div>
+
+      <div class="two" style="margin-bottom:14px">
+        <div class="card amber">
+          <h3>What the stores hold</h3>
+          <div class="tag">each store has a specific, non-overlapping job</div>
+          <ul>
+            <li><b>Redis</b> — live counters. How many tokens has run-X burned? Is this team over rate limit? Fast, volatile, sub-millisecond reads.</li>
+            <li><b>Vector Store</b> — cache embeddings. "Has a similar prompt been answered before?" Semantic similarity search at millisecond speed.</li>
+            <li><b>Postgres</b> — permanent record. Every call, every cost, every quality score. The source of truth for FinOps and audit.</li>
+          </ul>
+        </div>
+        <div class="card amber">
+          <h3>Why keep them separate</h3>
+          <div class="tag">each store is optimised for its workload</div>
+          <ul>
+            <li>Redis is <b>fast and ephemeral</b> — perfect for hot-path counters that reset each run.</li>
+            <li>Vector store is <b>optimised for nearest-neighbour search</b> — a relational DB would be too slow for semantic cache lookups.</li>
+            <li>Postgres is <b>durable and queryable</b> — finance needs SQL joins across teams, dates, and task types.</li>
+          </ul>
+          <div class="punch amber">SAY: "One gateway writes to all three. Telemetry is fire-and-forget — it never slows down the hot path."</div>
+        </div>
+      </div>
+
+      <table>
+        <tr><th>Store</th><th>Serves which stage</th><th>Plain English</th><th>Production option</th></tr>
+        <tr>
+          <td><b>Redis</b></td>
+          <td>Stage ④ Budget Governor</td>
+          <td>The running tab. Tracks how much each agent has spent this run. Clears when the run ends.</td>
+          <td class="mono">Redis 7 / Elasticache</td>
+        </tr>
+        <tr>
+          <td><b>Vector Store</b></td>
+          <td>Stage ③ Semantic Cache</td>
+          <td>The memory bank. Stores embeddings of past prompts so similar future questions get a free answer.</td>
+          <td class="mono">pgvector / FAISS</td>
+        </tr>
+        <tr>
+          <td><b>Postgres</b></td>
+          <td>Stage ⑧ Quality Gate (writes telemetry)</td>
+          <td>The ledger. Every call is logged with team, cost, quality, and correlation ID. Powers FinOps and audit.</td>
+          <td class="mono">Postgres 16 / RDS</td>
+        </tr>
+      </table>
+
+    </div>
+  </section>
+
+  <!-- ── ZONE 5: LEARNING LOOP ─────────────────────────────────── -->
+  <section>
+    <div class="s-head">
+      <h2 class="loop">
+        <span class="num">5</span>
+        <span class="tab-pill">Learning &amp; Economics Loop</span>
+        &nbsp;— how it compounds over time
+      </h2>
+      <svg class="chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+    <div class="s-body">
+
+      <div class="two" style="margin-bottom:14px">
+        <div class="card violet">
+          <h3>Why this is the moat</h3>
+          <div class="tag">the compounding advantage competitors can't copy</div>
+          <ul>
+            <li>Day 1: routing is <b>rules-based</b> — task type maps to a fixed tier. Good, but static.</li>
+            <li>Day 90: the Router Trainer has observed which model actually passed quality for which task at which cost. Routing becomes <b>evidence-based</b>.</li>
+            <li>Day 365: telemetry covers seasonal patterns, team differences, model drift. The router <b>self-corrects as providers change</b>.</li>
+            <li>The more calls go through, the better the routing gets. A competitor starting fresh starts cold.</li>
+          </ul>
+          <div class="punch violet">SAY: "The data flywheel is the defensible part. You can copy the rules. You can't copy two years of call history."</div>
+        </div>
+        <div class="card violet">
+          <h3>The four loop components</h3>
+          <div class="tag">roadmap — not running today</div>
+          <ul>
+            <li><b>Router Trainer</b> — reads Postgres telemetry, identifies which model had the best cost/quality ratio per task fingerprint, updates routing policy.</li>
+            <li><b>Outcome Linker</b> — joins <span class="mono">correlation_id</span> to real SDLC events: did the PR merge? Did the test pass? Did the ticket close?</li>
+            <li><b>FinOps Dashboard</b> — showback (here's what your team spent) and chargeback (here's the invoice). Connects to finance tooling.</li>
+            <li><b>Executive KPIs</b> — cost per resolved ticket, quality trend, risk avoided. The numbers the CPTO and CFO actually care about.</li>
+          </ul>
+        </div>
+      </div>
+
+      <table>
+        <tr><th>Component</th><th>Input</th><th>Output</th><th>Plain English</th></tr>
+        <tr>
+          <td><b>Router Trainer</b></td>
+          <td>Telemetry: task type, model, cost, quality score</td>
+          <td>Updated routing policy (stage ⑤)</td>
+          <td>Learns which model is actually cheapest-that-passes for each task. Like A/B testing, but automated and continuous.</td>
+        </tr>
+        <tr>
+          <td><b>Outcome Linker</b></td>
+          <td><span class="mono">correlation_id</span> + Git / Jira / CI webhooks</td>
+          <td>Cost-per-outcome metrics in Postgres</td>
+          <td>Connects "we spent $0.31 on this AI call" to "that call fixed JIRA-4821 which closed in 2 hours". Makes cost meaningful.</td>
+        </tr>
+        <tr>
+          <td><b>FinOps Dashboard</b></td>
+          <td>Postgres cost ledger, team tags</td>
+          <td>Showback/chargeback reports by team</td>
+          <td>Gives finance a line-item view. "Platform team spent $12K on AI last month, 40% of which was codegen." Replaces a credit card bill with actual attribution.</td>
+        </tr>
+        <tr>
+          <td><b>Executive KPIs</b></td>
+          <td>Cost + outcome data</td>
+          <td>Cost per ticket, quality score, risk avoided</td>
+          <td>The board-level view. Not "we spent $X on tokens" — but "AI resolved 4,200 tickets at $0.31 each, with 0.89 quality." ROI, not spend.</td>
+        </tr>
+      </table>
+
+      <div class="caveat">
+        <b>When asked about the loop (say this):</b>
+        <ul>
+          <li>None of these four components are running today. They're on the roadmap and depend on Postgres telemetry being wired up first.</li>
+          <li>The <span class="mono">correlation_id</span> field is already emitted by the gateway — that's the hook the Outcome Linker needs. The plumbing is in place; the consumer isn't built yet.</li>
+          <li>Right framing: "The PoC proves the hot path works. The loop is what turns it from a cost tool into a business intelligence platform."</li>
+        </ul>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ── HARD QUESTIONS ─────────────────────────────────────────── -->
+  <section>
+    <div class="s-head">
+      <h2 class="hard">
+        <span class="num">6</span>
+        <span class="tab-pill">Hard Questions</span>
+        &nbsp;— how to answer them
+      </h2>
+      <svg class="chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+    <div class="s-body">
+      <table>
+        <tr><th style="width:260px">Question</th><th>What to say</th></tr>
+        <tr>
+          <td><b>"Why 8 stages? Isn't that over-engineered?"</b></td>
+          <td>Each stage has exactly one job and can be turned off independently. Remove the cache → routing still works. Remove compression → quality gate still works. The stages are composable, not coupled. You don't have to use all 8 on day one.</td>
+        </tr>
+        <tr>
+          <td><b>"What's the latency overhead of passing through 8 stages?"</b></td>
+          <td>Cache, governor, router, and compression are all in-process — microseconds. The only external calls are the model itself (which you'd make anyway) and the async telemetry write (fire-and-forget, off the hot path). For a 2-second model call, the control plane adds under 5ms.</td>
+        </tr>
+        <tr>
+          <td><b>"What if the router sends a task to a model that can't do it?"</b></td>
+          <td>That's what stage ⑧ Quality Gate is for. If the response doesn't meet the quality bar, it escalates one tier automatically and retries. The caller always gets a response that passed validation — or an explicit error, not a silent bad answer.</td>
+        </tr>
+        <tr>
+          <td><b>"Does the semantic cache return wrong answers?"</b></td>
+          <td>Cache hits return the answer from a previous call that passed the quality gate. The threshold is 85% similarity in the PoC — conservative. In production you'd tune this per task type: tighter for codegen, looser for summarization. You can also add a staleness TTL.</td>
+        </tr>
+        <tr>
+          <td><b>"Where does data go? Can my prompts leave the perimeter?"</b></td>
+          <td>Stages ①–⑥ run inside your trust boundary. The only data that leaves is what you explicitly dispatch to a provider in stage ⑦ — same as today. The cache, governor, compression, and telemetry never touch a third-party service. You can also route data-sensitive tasks to internal LLMs only.</td>
+        </tr>
+        <tr>
+          <td><b>"How is this different from just using LiteLLM?"</b></td>
+          <td>LiteLLM is a transport layer — it normalises the API across providers. TokenIQ is a control plane — it decides what to send, to whom, at what cost, and whether to send it at all. They're complementary: TokenIQ uses LiteLLM in stage ⑦ for the actual dispatch. LiteLLM has no cache, no governor, no router, and no quality gate.</td>
+        </tr>
+        <tr>
+          <td><b>"What's the correlation_id for?"</b></td>
+          <td>It's a trace ID that links a model call back to the SDLC event that triggered it — a Jira ticket, a PR, a CI run. Without it, you know you spent $X on AI. With it, you know you spent $X on resolving ticket JIRA-4821 which was merged in 2 hours. That's cost-per-outcome, not just cost-per-token.</td>
+        </tr>
+        <tr>
+          <td><b>"The diagram shows Roadmap items — what's actually built?"</b></td>
+          <td>Stages ①–⑤ and ⑧ are running PoC today — gateway, meter+tag, semantic cache, budget governor, model router, and quality gate. Stages ⑥–⑦ (compression adapter, model dispatch) are simulated in the PoC and are PoC/Production Target. The data stores (Redis, vector, Postgres) and the full learning loop (Router Trainer, Outcome Linker, FinOps) are on the roadmap.</td>
+        </tr>
+      </table>
+    </div>
+  </section>
+
+  <div class="footer">
+    jlanado/tokenIQ · architecture-flow cue card · companion to cue-card.html and cue-card-tabs.html<br>
+    5 zones · 8 hot-path stages · status: Running PoC · PoC/Prod Target · Production Target · Roadmap
+  </div>
+
+</div>
+
+<script>
+  document.querySelectorAll('section .s-head').forEach(head => {
+    head.addEventListener('click', () => {
+      head.closest('section').classList.toggle('collapsed');
+    });
+  });
+
+  document.getElementById('expand-all').onclick = () =>
+    document.querySelectorAll('section').forEach(s => s.classList.remove('collapsed'));
+
+  document.getElementById('collapse-all').onclick = () =>
+    document.querySelectorAll('section').forEach(s => s.classList.add('collapsed'));
+</script>
