@@ -47,6 +47,7 @@ class ChatRequest(BaseModel):
     prompt: str
     agent_run_id: str = "default"
     team: str = "platform"
+    correlation_id: str | None = None
 
 
 def call_backend(task, tier):
@@ -76,6 +77,7 @@ def chat(req: ChatRequest):
     hit = CACHE.get(req.task, req.prompt)
     if hit is not None:
         rec = {"task": req.task, "team": req.team, "run": req.agent_run_id,
+               **({"correlation_id": req.correlation_id} if req.correlation_id is not None else {}),
                "tier": "cache", "tokens": 0, "cost": 0.0, "quality": hit, "cached": True}
         TELEMETRY.append(rec)
         return {"served_from": "cache", **rec}
@@ -105,6 +107,7 @@ def chat(req: ChatRequest):
 
     raw_tokens = task.tokens * (2 if escalated else 1)
     rec = {"task": req.task, "team": req.team, "run": req.agent_run_id,
+           **({"correlation_id": req.correlation_id} if req.correlation_id is not None else {}),
            "tier": tier.name, "tokens": tokens, "raw_tokens": raw_tokens,
            "cost": round(c, 5), "quality": q, "escalated": escalated, "cached": False}
     TELEMETRY.append(rec)
