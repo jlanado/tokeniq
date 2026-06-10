@@ -77,7 +77,7 @@
   .b-mid{background:rgba(243,178,76,.15);color:var(--amber)}
   .b-frontier{background:rgba(90,169,255,.15);color:var(--blue)}
   .b-cache{background:rgba(52,214,208,.15);color:var(--cyan)}
-  .b-esc{background:rgba(255,157,77,.18);color:var(--orange)}
+  .b-esc{background:rgba(179,170,255,.18);color:var(--violet)}
   .b-kill{background:rgba(255,96,96,.18);color:var(--red)}
 
   .two{display:grid;grid-template-columns:1fr 1fr;gap:16px}
@@ -174,10 +174,12 @@
           <h3>The KPI strip (top cards)</h3>
           <div class="tag">updates after the run completes</div>
           <ul>
-            <li><b>Tokens</b> — what you consumed vs the naive all-frontier baseline.</li>
-            <li><b>Cache hit rate</b> — share of calls that cost ~$0 because the answer was already known.</li>
-            <li><b>Routing savings</b> — extra savings from sending cheap tasks to cheap models.</li>
-            <li><b>Quality</b> — modelled score; 0.89 vs 0.93 naive = ~4% drop, quality held.</li>
+            <li><b>Tokens Used</b> — compressed tokens billed; "naive: N" below it is the all-frontier, no-cache baseline.</li>
+            <li><b>Cache Hit Rate</b> — share of calls that cost $0. ~31% on JIRA-4821 (5 of 16 steps).</li>
+            <li><b>Routing Savings</b> — cost reduction vs all-frontier. ~84% on JIRA-4821 because mid ($3) handles every task naive sent to frontier ($15).</li>
+            <li><b>Quality Score</b> — modelled score; 0.89 vs 0.93 naive = ~4% drop, quality held.</li>
+            <li><b>Run Cost</b> — dollar cost of this run; "naive: $N" shown below it.</li>
+            <li><b>Compression</b> — how much input context was stripped before the model call. ~38% on JIRA-4821.</li>
           </ul>
           <div class="punch">SAY: "93% cost reduction. Quality barely moved. That's the whole story."</div>
         </div>
@@ -247,15 +249,16 @@
         <tr>
           <td><span class="mono">codegen</span></td>
           <td>Generate a correct, production-ready code change or changelog entry.</td>
-          <td><span class="badge b-frontier">frontier</span></td>
-          <td>"Writing the actual fix. Only this step needs the frontier model."</td>
+          <td><span class="badge b-mid">mid</span></td>
+          <td>"Writing the actual fix. Needs reasoning, so it routes to mid — frontier is never called because mid (cap 0.88) already clears the codegen bar (0.85)."</td>
         </tr>
       </table>
 
       <div class="oneliner" style="margin-top:14px;border-left-color:var(--blue)">
-        <b>The routing story in one sentence:</b> Out of 16 steps, only 3 are <span class="badge b-frontier">codegen</span> that need frontier.
-        The other 13 — classify, retrieve, summarize, write_tests, review — route to small or mid.
-        That's where the 93% cost cut comes from.
+        <b>The routing story in one sentence:</b> Out of 16 steps, <span class="badge b-frontier">frontier</span> is called <b>zero times</b>.
+        classify / retrieve / summarize → <span class="badge b-small">small</span>.
+        write_tests / review / codegen → <span class="badge b-mid">mid</span> (mid cap 0.88 ≥ codegen req 0.85).
+        5 steps hit cache and cost $0. That stack is where the 93% cut comes from.
       </div>
 
       <div class="caveat">
@@ -297,9 +300,9 @@
           <h3>The "why this matters at scale" moment</h3>
           <div class="tag">the numbers that land with finance</div>
           <ul>
-            <li>At <b>1,000 runs/day</b>: ~$1.5M gross/year → saves ~$1.4M.</li>
-            <li>At <b>10,000 runs/day</b>: ~$15M gross/year → saves ~$14M.</li>
-            <li>At <b>50,000 runs/day</b>: ~$74M gross/year → saves ~$69M.</li>
+            <li>At <b>1,000 runs/day</b>: ~$1.6M gross/year → saves ~$1.5M.</li>
+            <li>At <b>10,000 runs/day</b>: ~$16M gross/year → saves ~$14.9M.</li>
+            <li>At <b>50,000 runs/day</b>: ~$80M gross/year → saves ~$74M.</li>
             <li>The savings compound because all four levers stack.</li>
           </ul>
           <div class="punch amber">SAY: "At enterprise scale, ungoverned AI spend is a budget line item."</div>
@@ -308,11 +311,11 @@
 
       <table class="scale-table">
         <tr><th>Runs / day</th><th>Gross annual (naive)</th><th>With TokenIQ</th><th>Annual savings</th></tr>
-        <tr><td>1,000</td><td>$1.49M</td><td>$0.11M</td><td class="up">~$1.38M (93%)</td></tr>
-        <tr><td>5,000</td><td>$7.47M</td><td>$0.57M</td><td class="up">~$6.9M (93%)</td></tr>
-        <tr><td>10,000</td><td>$14.9M</td><td>$1.1M</td><td class="up">~$13.8M (93%)</td></tr>
-        <tr><td>50,000</td><td>$74.7M</td><td>$5.7M</td><td class="up">~$69M (93%)</td></tr>
-        <tr><td>100,000</td><td>$149M</td><td>$11.4M</td><td class="up">~$138M (93%)</td></tr>
+        <tr><td>1,000</td><td>$1.6M</td><td>$0.11M</td><td class="up">~$1.49M (93%)</td></tr>
+        <tr><td>5,000</td><td>$7.99M</td><td>$0.57M</td><td class="up">~$7.43M (93%)</td></tr>
+        <tr><td>10,000</td><td>$15.99M</td><td>$1.13M</td><td class="up">~$14.85M (93%)</td></tr>
+        <tr><td>50,000</td><td>$79.94M</td><td>$5.67M</td><td class="up">~$74.27M (93%)</td></tr>
+        <tr><td>100,000</td><td>$159.89M</td><td>$11.34M</td><td class="up">~$148.54M (93%)</td></tr>
       </table>
 
       <div class="caveat">
