@@ -124,7 +124,10 @@ def metrics():
     Q = sum(quals) / len(quals) if quals else 0.0
     frontier_cost = sum(cost(r["tokens"], FRONTIER) for r in billed)
     cached = [r for r in TELEMETRY if r.get("cached")]
-    hit_rate = len(cached) / len(TELEMETRY) if TELEMETRY else 0.0
+    # lookups = billed + cached (every call that reached the cache check)
+    lookups = len(billed) + len(cached)
+    hit_rate = len(cached) / lookups if lookups else 0.0
+    outcomes = len(set(r.get("correlation_id") for r in TELEMETRY if r.get("correlation_id"))) or 1
     return {
         "calls": len(TELEMETRY),
         "tokens": tokens,
@@ -133,7 +136,7 @@ def metrics():
         "quality": round(Q, 3),
         "cache_hit_rate": round(hit_rate, 3),
         "routing_savings": round(1 - total / frontier_cost, 3) if frontier_cost else 0.0,
-        "quality_adjusted_cost_per_outcome": round(total / Q, 4) if Q else None,
+        "quality_adjusted_cost_per_outcome": round(total / (outcomes * Q), 4) if Q else None,
     }
 
 
