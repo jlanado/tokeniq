@@ -338,6 +338,8 @@
   table.stbl tr.killed td { background: var(--red-soft); }
   table.stbl tr { animation: rowIn .2s ease; }
   @keyframes rowIn { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: none; } }
+  @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.25; } }
+  .blink { animation: blink 1.4s ease-in-out infinite; }
   .n-cell { color: var(--dim); font-family: var(--mono); font-size: 11px; }
   .kind-cell { color: var(--txt2); font-family: var(--mono); font-size: 12px; }
   td.tok { text-align: right; font-family: var(--mono); color: var(--muted); }
@@ -375,7 +377,7 @@
   .hero-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; }
   .hero-label { font-size: 11px; text-transform: uppercase; letter-spacing: .7px; color: var(--muted); font-weight: 600; margin-bottom: 5px; }
   .hero-nums { font-size: 14px; color: var(--muted); }
-  .hero-nums .strike { text-decoration: line-through; color: var(--dim); }
+  .hero-nums .strike { text-decoration: line-through; color: var(--muted); font-family: var(--mono); font-size: 20px; font-weight: 500; letter-spacing: -0.5px; }
   .hero-nums .cur { font-family: var(--mono); font-size: 26px; font-weight: 500; color: var(--txt); letter-spacing: -1px; }
   .hero-cut { font-family: var(--mono); font-size: 38px; font-weight: 700; color: var(--green); letter-spacing: -2px; }
   .lever-head { font-size: 11px; text-transform: uppercase; letter-spacing: .6px; color: var(--muted); font-weight: 600; margin-bottom: 10px; }
@@ -391,7 +393,7 @@
   .fleet-slider-row input[type=range] { flex: 1; accent-color: var(--blue); cursor: pointer; }
   .fleet-slider-row .fval { font-family: var(--mono); font-size: 14px; font-weight: 500; color: var(--txt); min-width: 68px; text-align: right; }
   .fleet-stat { display: flex; justify-content: space-between; align-items: baseline; padding: 9px 0; border-top: 1px solid var(--border-faint); }
-  .fleet-stat .fs-l { font-size: 12.5px; color: var(--muted); }
+  .fleet-stat .fs-l { font-size: 15px; color: var(--txt); }
   .fleet-stat .fs-v { font-family: var(--mono); font-size: 18px; font-weight: 600; }
   .fleet-stat .fs-v.gross { color: var(--amber); }
   .fleet-stat .fs-v.save  { color: var(--green); }
@@ -624,7 +626,7 @@
                 <circle cx="80" cy="80" r="62" fill="none" stroke="#f3f4f6" stroke-width="26"/>
                 <g id="donut-arcs" transform="rotate(-90 80 80)"></g>
                 <text x="80" y="75" text-anchor="middle" font-size="13" font-weight="600" fill="currentColor" font-family="'JetBrains Mono',monospace" id="donut-total">—</text>
-                <text x="80" y="92" text-anchor="middle" font-size="11" fill="currentColor" style="opacity:.5" font-family="'Inter',sans-serif" id="donut-label">total</text>
+                <text x="80" y="92" text-anchor="middle" font-size="11" fill="currentColor" style="opacity:.5" font-family="'Inter',sans-serif" id="donut-label">raw API cost</text>
               </svg>
               <div id="donut-tip"></div>
             </div>
@@ -635,6 +637,9 @@
               <div class="leg-row"><span class="leg-dot" style="background:#06b6d4"></span><span class="leg-name">Cache</span><span class="leg-val">$0.00</span><span class="leg-pct" style="color:var(--cyan)">free</span></div>
             </div>
           </div>
+          <p style="margin:10px 0 0;font-size:12px;color:var(--dim);line-height:1.5">
+            <strong style="color:var(--txt);font-size:13px">Raw API cost</strong> — sum of every LLM charge (frontier + mid + small) for one agent run. Cache hits cost $0. This is what you actually pay the API, before accounting for how many tickets were successfully resolved.
+          </p>
         </div>
       </div>
 
@@ -655,6 +660,9 @@
             </div>
             <div class="hero-cut" id="h-cut">—</div>
           </div>
+          <p style="margin:8px 0 14px;font-size:12px;color:var(--dim);line-height:1.5">
+            <strong style="color:var(--txt);font-size:13px">Cost per resolved ticket</strong> — raw API cost ÷ quality score (Q). Q is the average fraction of steps that produced an accepted resolution (0–1). <span id="cpo-footnote-q"></span>This is the business-relevant unit cost.
+          </p>
           <div style="border-top:1px solid var(--border-faint);padding-top:14px">
             <div class="lever-head">Optimization lever stack</div>
             <div id="lever-stack"><div style="font-size:12px;color:var(--dim)">Run agent to see compounding savings</div></div>
@@ -684,6 +692,10 @@
         <div class="fleet-stat">
           <span class="fs-l">Estimated annual savings with TokenIQ</span>
           <span class="fs-v save" id="fleet-annual">—</span>
+        </div>
+        <div class="fleet-stat">
+          <span class="fs-l">Net annual cost (with control plane)</span>
+          <span class="fs-v blink" id="fleet-net" style="color:#facc15">—</span>
         </div>
         <div class="fleet-note">
           Compression is a pluggable stage (e.g. Headroom). The defensible layer is routing · governance · outcome pricing.<br>
@@ -742,7 +754,8 @@
                 <tr><td class="kind-cell">summarize</td>  <td class="tok">0.60</td><td style="text-align:right"><span class="badge b-small">SMALL</span></td></tr>
                 <tr><td class="kind-cell">write_tests</td><td class="tok">0.78</td><td style="text-align:right"><span class="badge b-mid">MID</span></td></tr>
                 <tr><td class="kind-cell">review</td>     <td class="tok">0.80</td><td style="text-align:right"><span class="badge b-mid">MID</span></td></tr>
-                <tr><td class="kind-cell">codegen</td>    <td class="tok">0.85</td><td style="text-align:right"><span class="badge b-frontier">FRONTIER</span></td></tr>
+                <tr><td class="kind-cell">codegen</td>    <td class="tok">0.85</td><td style="text-align:right"><span class="badge b-mid">MID</span></td></tr>
+                <tr><td class="kind-cell">plan</td>       <td class="tok">0.92</td><td style="text-align:right"><span class="badge b-frontier">FRONTIER</span></td></tr>
               </tbody>
             </table>
           </div>
@@ -880,18 +893,23 @@ const FRONTIER = TIERS[2];
 const SPECS = {
   classify:[0.50,5000], retrieve:[0.55,12000], summarize:[0.60,8000],
   write_tests:[0.78,20000], review:[0.80,25000], codegen:[0.85,32000],
+  plan:[0.92,18000],
 };
 const COMPRESS = {
   classify:[0.55,0.30], retrieve:[0.90,0.85], summarize:[0.70,0.45],
   write_tests:[0.50,0.50], review:[0.80,0.70], codegen:[0.40,0.45],
+  plan:[0.50,0.40],
 };
 const compTokens = (kind, tok) => { const [c,r] = COMPRESS[kind]; return Math.round(tok*(1-c*r)); };
 const costOf = (tok, t) => tok / 1e6 * t.price;
 const route = req => { for (const t of TIERS) { if (t.cap >= req) return t; } return FRONTIER; };
 function runModel(req, t) {
   const m = t.cap - req;
-  if (m >= -0.001) return { q: Math.min(1, 0.86 + m*0.25), pass: true };
-  const q = Math.max(0.3, t.cap - 0.15);
+  if (m >= -0.001) {
+    const q = +Math.min(1, 0.86 + m*0.25 + Math.random()*0.03 - 0.01).toFixed(3);
+    return { q, pass: true };
+  }
+  const q = +Math.max(0.3, t.cap - 0.15 + Math.random()*0.10 - 0.05).toFixed(3);
   return { q, pass: q >= 0.8 };
 }
 const tokset = s => new Set((s.toLowerCase().match(/\w+/g) || []));
@@ -902,9 +920,11 @@ const TICKET = [
   ['retrieve',    'Fetch code context for PaymentService.processPayment'],
   ['retrieve',    'Fetch code context for PaymentService.processPayment'],
   ['summarize',   'Summarize related incidents for PaymentService null currency'],
+  ['plan',        'Design null-safety remediation strategy for PaymentService currency field'],
   ['codegen',     'Generate null-check fix for PaymentService.processPayment currency field'],
   ['retrieve',    'Fetch code context for PaymentService.processPayment'],
   ['review',      'Review proposed fix for side effects in PaymentService'],
+  ['plan',        'Evaluate architectural impact of null-check on downstream PaymentService consumers'],
   ['write_tests', 'Write unit tests for null currency handling in PaymentService'],
   ['codegen',     'Generate null-check fix for PaymentService.processPayment currency field'],
   ['retrieve',    'Fetch CI config for payments module'],
@@ -912,6 +932,7 @@ const TICKET = [
   ['review',      'Review proposed fix for side effects in PaymentService'],
   ['review',      'Review PR description for JIRA-4821'],
   ['classify',    'Classify PR risk level for JIRA-4821'],
+  ['plan',        'Validate fix completeness against PaymentService null-safety requirements'],
   ['summarize',   'Summarize related incidents for PaymentService null currency'],
   ['codegen',     'Generate changelog entry for JIRA-4821 fix'],
 ];
@@ -924,7 +945,8 @@ function execute(steps, {router, cache, gov, comp}) {
   for (let i=0; i<steps.length; i++) {
     const [kind, prompt] = steps[i];
     const [req, tok] = SPECS[kind];
-    const foot = comp ? compTokens(kind, tok) : tok;
+    const rawTok = Math.round(tok * (0.88 + Math.random() * 0.24));
+    const foot = comp ? compTokens(kind, rawTok) : rawTok;
     if (gov) {
       const sig = kind+'|'+prompt;
       seen[sig] = (seen[sig]||0) + 1;
@@ -957,7 +979,7 @@ function execute(steps, {router, cache, gov, comp}) {
     }
     if (gov) used += tokens;
     if (cache) { exact[kind+'|'+prompt]=r.q; entries.push({kind,ts:tokset(prompt),v:r.q}); }
-    out.push({n:i+1,kind,decision:t.name,tokens,raw:tok*(esc?2:1),cost:costOf(tokens,t),q:r.q,escalated:esc,compressed:comp});
+    out.push({n:i+1,kind,decision:t.name,tokens,raw:rawTok*(esc?2:1),cost:costOf(tokens,t),q:r.q,escalated:esc,compressed:comp});
   }
   return {out, hits, looks, killed};
 }
@@ -979,8 +1001,11 @@ function summarize(res) {
 const $ = id => document.getElementById(id);
 const fmt = n => n.toLocaleString('en-US');
 const usd = n => '$' + n.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+
+// Naive baseline computed once so all panels use the same random draw
+const NAIVE_BASELINE = summarize(execute(TICKET, {router:false,cache:false,gov:false,comp:false}));
 let lastCur = null, running = false;
-let lastRun = null, lastSpans = null;
+let lastRun = null, lastSpans = null, lastNaiveCpo = 0;
 
 // Date
 $('hdr-date').textContent = new Date().toLocaleDateString('en-US', {day:'2-digit', month:'short', year:'numeric'});
@@ -1017,7 +1042,7 @@ function drawDonut(costByTier, totalCost) {
   ];
   const entries = tiers.map(t=>({...t, cost:costByTier[t.name]||0})).filter(e=>e.cost>0);
   if (!entries.length) {
-    $('donut-total').textContent='—'; $('donut-label').textContent='total';
+    $('donut-total').textContent='—'; $('donut-label').textContent='raw API cost';
     ['frontier','mid','small'].forEach(t=>{$('lv-'+t).textContent='—';$('lp-'+t).textContent='—';});
     return;
   }
@@ -1048,13 +1073,13 @@ function drawDonut(costByTier, totalCost) {
       tip.style.display = 'none';
       c.setAttribute('stroke-width','26');
       totalTxt.textContent = usd(totalCost);
-      labelTxt.textContent = 'total cost';
+      labelTxt.textContent = 'raw API cost';
     });
     g.appendChild(c);
     acc += (e.cost/totalCost)*circ;
   }
   $('donut-total').textContent = usd(totalCost);
-  $('donut-label').textContent = 'total cost';
+  $('donut-label').textContent = 'raw API cost';
   ['frontier','mid','small'].forEach(t => {
     const c = costByTier[t]||0, pct = totalCost ? Math.round(c/totalCost*100) : 0;
     $('lv-'+t).textContent = usd(c);
@@ -1069,29 +1094,35 @@ const LEVER_CONFIGS = [
   {label:'+ Model routing',         opts:{router:true, cache:true, gov:false,comp:false}, color:'#2563eb'},
   {label:'+ Payload compression',   opts:{router:true, cache:true, gov:false,comp:true},  color:'#10b981'},
 ];
-function drawLevers() {
-  const costs = LEVER_CONFIGS.map(lc => summarize(execute(TICKET, lc.opts)).cost);
+function drawLevers(steps) {
+  const summaries = LEVER_CONFIGS.map(lc => summarize(execute(steps, lc.opts)));
+  const costs = summaries.map(s => s.cpo);
   const base  = costs[0] || 1;
   $('lever-stack').innerHTML = LEVER_CONFIGS.map((lc, i) => {
     const pct = Math.round(costs[i]/base*100);
     const cut = i===0 ? '' : `<span style="color:var(--green);font-weight:600">−${Math.round((1-costs[i]/base)*100)}%</span>`;
+    const naiveNote = i===0
+      ? `<span style="font-size:11px;color:var(--dim);margin-left:6px">(raw API cost ${usd(summaries[0].cost)} ÷ Q ${summaries[0].Q.toFixed(3)})</span>`
+      : '';
     return `<div class="lever-row">
       <div class="lever-top">
         <span style="color:var(--txt2)">${lc.label}</span>${cut}
       </div>
       <div class="lever-bar-bg"><div class="lever-bar-fill" style="width:${pct}%;background:${lc.color}"></div></div>
-      <div class="lever-cost">${usd(costs[i])}</div>
+      <div class="lever-cost">${usd(costs[i])}${naiveNote}</div>
     </div>`;
   }).join('');
 }
 
-function paintMetrics(s, naive, res) {
+function paintMetrics(s, naive, res, steps) {
   $('m-tok').textContent   = fmt(s.tokens);
   $('m-tok-d').textContent = 'naive: ' + fmt(naive.tokens);
   $('m-cache').textContent = Math.round(s.hit*100)+'%';
   $('m-route').textContent = Math.round(s.routeSav*100)+'%';
-  $('m-q').textContent     = s.Q.toFixed(2);
+  $('m-q').textContent     = s.Q.toFixed(3);
   $('m-qbar').style.width  = Math.round(s.Q*100)+'%';
+  const qEx = $('cpo-footnote-q');
+  if (qEx) qEx.textContent = `This run: Q = ${s.Q.toFixed(3)}, so ${usd(s.cost)} ÷ ${s.Q.toFixed(3)} = ${usd(s.cpo)}. `;
   $('m-cost').textContent  = usd(s.cost);
   $('m-cost-d').textContent= 'naive: '+usd(naive.cost);
   $('m-comp').textContent  = Math.round(s.compSav*100)+'%';
@@ -1112,20 +1143,20 @@ function paintMetrics(s, naive, res) {
   }
   $('donut-sub-date').textContent = new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
   drawDonut(costByTier, total);
-  drawLevers();
+  drawLevers(steps);
   lastCur = s;
   updateFleet();
 }
 
 function updateFleet() {
-  const naive = execute(TICKET, {router:false,cache:false,gov:false,comp:false});
-  const nb = summarize(naive);
+  const nb = NAIVE_BASELINE;
   const runs = +$('fleet-range').value;
   $('fleet-val').textContent   = fmt(runs);
   $('fleet-gross').textContent = usd(nb.cpo*runs*365).replace('.00','');
-  if (!lastCur) { $('fleet-annual').textContent='—'; return; }
-  const perRun = Math.max(0, nb.cpo - lastCur.cpo);
+  if (!lastCur) { $('fleet-annual').textContent='—'; $('fleet-net').textContent='—'; return; }
+  const perRun = Math.max(0, lastNaiveCpo - lastCur.cpo);
   $('fleet-annual').textContent = usd(perRun*runs*365).replace('.00','');
+  $('fleet-net').textContent    = usd(lastCur.cpo*runs*365).replace('.00','');
 }
 
 function opts() {
@@ -1141,7 +1172,8 @@ async function runWorkflow(steps, label) {
   $('stream-table').style.display  = 'table';
   $('stream-body').innerHTML       = '';
   const res   = execute(steps, opts());
-  const naive = summarize(execute(TICKET, {router:false,cache:false,gov:false,comp:false}));
+  const naive = summarize(execute(steps, {router:false,cache:false,gov:false,comp:false}));
+  lastNaiveCpo = naive.cpo;
   for (const r of res.out) {
     const tr = document.createElement('tr');
     if (r.killed) tr.className = 'killed';
@@ -1156,7 +1188,7 @@ async function runWorkflow(steps, label) {
     const w = $('stream-wrap'); w.scrollTop = w.scrollHeight;
     await new Promise(res => setTimeout(res, 140));
   }
-  paintMetrics(summarize(res), naive, res);
+  paintMetrics(summarize(res), naive, res, steps);
   lastRun = {res, traceId: makeTraceId(res), label: label || 'agent run'};
   lastSpans = null;
   if (currentTab === 'observability') renderTracesTab(true);
@@ -1172,11 +1204,12 @@ function doReset() {
   $('m-tok-d').textContent=''; $('m-cost-d').textContent='';
   $('m-qbar').style.width='0%';
   $('h-naive').textContent='—'; $('h-cur').textContent='—'; $('h-cut').textContent='—'; $('h-cut').style.color='';
-  $('donut-arcs').innerHTML=''; $('donut-total').textContent='—'; $('donut-label').textContent='total';
+  const qExR = $('cpo-footnote-q'); if (qExR) qExR.textContent='';
+  $('donut-arcs').innerHTML=''; $('donut-total').textContent='—'; $('donut-label').textContent='raw API cost';
   ['frontier','mid','small'].forEach(t=>{$('lv-'+t).textContent='—';$('lp-'+t).textContent='—';});
   $('donut-sub-date').textContent='Run an agent to see cost breakdown';
   $('lever-stack').innerHTML='<div style="font-size:12px;color:var(--dim)">Run agent to see compounding savings</div>';
-  lastCur=null; lastRun=null; lastSpans=null;
+  lastCur=null; lastRun=null; lastSpans=null; lastNaiveCpo=0;
   $('obs-empty-card').style.display='';
   $('obs-content').style.display='none';
   updateFleet(); updateModePill();
@@ -1239,13 +1272,15 @@ function buildSpans(res) {
       break;
     }
     if (r.cached) {
-      spans.push({name:r.kind, kind:'cache', tier:'cache', start:t, cpMs:12, modelMs:0, dur:12, tokens:0, cost:0, status:'CACHED'});
-      t += 12 + GAP_MS;
+      const cacheDur = 8 + Math.round(Math.random() * 10);
+      spans.push({name:r.kind, kind:'cache', tier:'cache', start:t, cpMs:cacheDur, modelMs:0, dur:cacheDur, tokens:0, cost:0, status:'CACHED'});
+      t += cacheDur + GAP_MS;
       continue;
     }
-    const mMs = MODEL_MS[r.decision] || 700;
-    const dur = CP_MS + mMs;
-    spans.push({name:r.kind, kind:'model', tier:r.decision, start:t, cpMs:CP_MS, modelMs:mMs, dur, tokens:r.tokens, cost:r.cost, status:r.escalated?'ESCALATED':'OK'});
+    const cpMs = Math.round(CP_MS * (0.6 + Math.random() * 0.8));
+    const mMs  = Math.round((MODEL_MS[r.decision] || 700) * (0.82 + Math.random() * 0.36));
+    const dur  = cpMs + mMs;
+    spans.push({name:r.kind, kind:'model', tier:r.decision, start:t, cpMs, modelMs:mMs, dur, tokens:r.tokens, cost:r.cost, status:r.escalated?'ESCALATED':'OK'});
     t += dur + GAP_MS;
   }
   return spans;
@@ -1387,15 +1422,15 @@ function switchTab(name) {
     .replace(/\btab-\S+/g,'').trim() + ' tab-'+name;
   // populate policies tables on first visit
   if (name === 'policies') buildPolicyTables();
-  // populate fleet scenarios on fleet tab
-  if (name === 'fleet') buildFleetScenarios();
+  // populate fleet scenarios on fleet tab or dashboard (both show s-fleet)
+  if (name === 'fleet' || name === 'dashboard') buildFleetScenarios();
   if (name === 'observability') renderTracesTab(false);
 }
 
 function buildPolicyTables() {
   const tbody = $('policy-task-body');
   if (!tbody || tbody.children.length) return;
-  const tasks = ['classify','retrieve','summarize','write_tests','review','codegen'];
+  const tasks = ['classify','retrieve','summarize','write_tests','review','codegen','plan'];
   tbody.innerHTML = tasks.map(k => {
     const [,tok] = SPECS[k];
     const [ctxFrac, removed] = COMPRESS[k];
@@ -1415,7 +1450,7 @@ function buildPolicyTables() {
 function buildFleetScenarios() {
   const tbody = $('fleet-scenarios-body');
   if (!tbody || tbody.children.length) return;
-  const naive = summarize(execute(TICKET,{router:false,cache:false,gov:false,comp:false}));
+  const naive = NAIVE_BASELINE;
   const ctrl  = summarize(execute(TICKET,{router:true, cache:true, gov:true, comp:true}));
   const sizes = [1000, 5000, 10000, 50000, 100000];
   tbody.innerHTML = sizes.map(runs => {
@@ -1447,8 +1482,9 @@ document.querySelectorAll('.sb-item[data-tab]').forEach(el => {
 document.querySelector('.sb-logo').onclick = () => {
   document.querySelector('.sidebar').classList.toggle('open');
 };
-// init body class
+// init body class + populate sections visible on dashboard
 document.body.classList.add('tab-dashboard');
+buildFleetScenarios();
 
 // ── Dark / light mode toggle ──────────────────────────────────────────────
 (function() {
